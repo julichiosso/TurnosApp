@@ -15,6 +15,7 @@ router.get('/servicios', async (req: Request, res: Response) => {
                 duracion: true,
                 precio: true,
                 descripcion: true,
+                activo: true,
             },
         });
         return res.json(servicios);
