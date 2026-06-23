@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  password  String
+  creadoEn  DateTime @default(now())
+}
+
+model Servicio {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  duracion    Int      // minutos
+  precio      Float?
+  descripcion String?
+  activo      Boolean  @default(true)
+  creadoEn    DateTime @default(now())
+
+  turnos      Turno[]
+}
+
+model HorarioLaboral {
+  id          Int     @id @default(autoincrement())
+  diaSemana   Int     // 0=domingo, 1=lunes ... 6=sábado
+  horaInicio  String  // "09:00"
+  horaFin     String  // "18:00"
+  intervalo   Int     @default(30) // minutos entre slots
+  activo      Boolean @default(true)
+}
+
+model BloqueoFecha {
+  id     Int     @id @default(autoincrement())
+  fecha  String  // "2024-06-15" — día completo bloqueado
+  motivo String?
+}
+
+model Turno {
+  id              Int      @id @default(autoincrement())
+  fecha           String   // "2024-06-15"
+  hora            String   // "10:00"
+  nombreCliente   String
+  telefonoCliente String
+  emailCliente    String?
+  nota            String?
+  estado          String   @default("pendiente") // pendiente | confirmado | cancelado | completado
+  creadoEn        DateTime @default(now())
+
+  servicioId Int
+  servicio   Servicio @relation(fields: [servicioId], references: [id])
+}
+
+model ConfigNegocio {
+  id                  Int     @id @default(autoincrement())
+  nombreProfesional   String  @default("")
+  especialidad        String  @default("")
+  telefono            String  @default("")
+  direccion           String  @default("")
+  mensajeBienvenida   String  @default("")
+}
