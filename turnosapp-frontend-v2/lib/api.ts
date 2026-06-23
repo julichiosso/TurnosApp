@@ -13,7 +13,11 @@ export const getServicios = async (): Promise<Servicio[]> => {
 export const getDisponibilidad = async (servicioId: number, fecha: string): Promise<SlotHorario[]> => {
     const res = await fetch(`${API_URL}/api/publico/disponibilidad?servicioId=${servicioId}&fecha=${fecha}`);
     if (!res.ok) throw new Error('Error al cargar disponibilidad');
-    return res.json();
+    const data: string[] = await res.json();
+    return data.map(h => ({
+        hora: h,
+        disponible: true // Si el backend lo devuelve, es porque está disponible
+    }));
 };
 
 export const crearTurnoPublico = async (data: any): Promise<Turno> => {
