@@ -1,15 +1,11 @@
 "use client";
 
-import Sidebar from "@/components/admin/Sidebar";
+import BottomNav from "@/components/admin/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
-export default function AdminLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
-    const { loading } = useAuth(); // Hook de protección centralizado
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const { loading } = useAuth();
 
     if (loading) {
         return (
@@ -20,15 +16,14 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="min-h-screen bg-bg">
-            <Sidebar />
-            <main className="lg:pl-64 min-h-screen flex flex-col">
-                <div className="flex-1 p-4 lg:p-8">
-                    <div className="max-w-6xl mx-auto">
-                        {children}
-                    </div>
+        <div className="min-h-screen bg-bg text-white">
+            {/* Main content with bottom padding so it's not hidden by the nav */}
+            <main className="pb-[80px]">
+                <div className="max-w-lg mx-auto px-4 pt-6">
+                    {children}
                 </div>
             </main>
+            <BottomNav />
         </div>
     );
 }

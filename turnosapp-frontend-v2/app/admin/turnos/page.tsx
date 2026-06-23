@@ -1,166 +1,164 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { getTurnos, updateEstadoTurno } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { Turno } from "@/types";
-import {
-    Calendar,
-    CheckCircle,
-    XCircle,
-    Loader2,
-    Phone,
-    Wrench,
-    ChevronLeft,
-    ChevronRight
-} from "lucide-react";
+import TurnoCard from "@/components/admin/TurnoCard";
+import StatusBottomSheet from "@/components/admin/StatusBottomSheet";
+import Toast from "@/components/admin/Toast";
+import { Calendar, Loader2, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+
+const PAGE_SIZE = 8;
 
 export default function TurnosPage() {
-    const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+    const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
     const [turnos, setTurnos] = useState<Turno[]>([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);
+    const [selectedTurno, setSelectedTurno] = useState<Turno | null>(null);
+    const [toast, setToast] = useState<string | null>(null);
 
-    const load = async () => {
+    const showToast = (msg: string) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 2000);
+    };
+
+    const load = useCallback(async () => {
         const token = getToken();
         if (!token) return;
         setLoading(true);
         try {
             const data = await getTurnos(token, fecha);
-            setTurnos(data);
-        } catch (error) {
-            console.error(error);
+            setTurnos(data.sort((a, b) => a.hora.localeCompare(b.hora)));
+            setPage(0);
+        } catch (e) {
+            console.error(e);
         } finally {
             setLoading(false);
         }
-    };
+    }, [fecha]);
 
-    useEffect(() => { load(); }, [fecha]);
+    useEffect(() => { load(); }, [load]);
 
-    const handleEstado = async (id: number, nuevoEstado: string) => {
-        const token = getToken();
-        if (!token) return;
+    const handleChangeEstado = async (id: number, estado: string) => {
+        setTurnos(prev =>
+            prev.map(t => t.id === id ? { ...t, estado: estado as Turno["estado"] } : t)
+        );
+        showToast("Estado actualizado");
         try {
-            await updateEstadoTurno(token, id, nuevoEstado);
+            const token = getToken();
+            if (token) await updateEstadoTurno(token, id, estado);
+        } catch {
             load();
-        } catch (error) {
-            alert("Error al actualizar estado");
         }
     };
 
     const cambiarDia = (offset: number) => {
         const d = new Date(fecha + "T12:00:00");
         d.setDate(d.getDate() + offset);
-        setFecha(d.toISOString().split('T')[0]);
+        setFecha(d.toISOString().split("T")[0]);
     };
 
+    const totalPages = Math.ceil(turnos.length / PAGE_SIZE);
+    const paged = turnos.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
     return (
-        <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <>
+            <Toast message={toast} />
+            <div className="space-y-5">
+                {/* Header + Date Nav */}
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-                        Gestión de <span className="text-rojo">Turnos</span>
+                    <h1 className="text-2xl font-black italic uppercase tracking-tighter">
+                        Agenda <span className="text-rojo">del Día</span>
                     </h1>
-                    <p className="text-texto-muted text-sm font-medium">Control total sobre la agenda del taller.</p>
-                </div>
-
-                <div className="flex items-center gap-2 bg-surface p-1 rounded-xl border border-borde shadow-lg">
-                    <button onClick={() => cambiarDia(-1)} className="p-2 hover:bg-surface-2 rounded-lg text-texto-muted transition-colors"><ChevronLeft size={20} /></button>
-                    <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-rojo" size={16} />
-                        <input
-                            type="date"
-                            value={fecha}
-                            onChange={(e) => setFecha(e.target.value)}
-                            className="bg-transparent text-white font-bold text-sm h-10 pl-10 pr-4 outline-none uppercase"
-                        />
+                    {/* Date picker row */}
+                    <div className="flex items-center gap-2 mt-3 bg-surface border border-borde p-1 rounded-2xl">
+                        <button onClick={() => cambiarDia(-1)} className="p-2.5 hover:bg-surface-2 rounded-xl text-texto-muted transition-colors">
+                            <ChevronLeft size={20} />
+                        </button>
+                        <div className="flex-1 relative">
+                            <CalendarDays className="absolute left-2 top-1/2 -translate-y-1/2 text-rojo" size={15} />
+                            <input
+                                type="date"
+                                value={fecha}
+                                onChange={e => setFecha(e.target.value)}
+                                style={{ fontSize: "16px" }}
+                                className="w-full bg-transparent text-white font-bold h-10 pl-8 outline-none"
+                            />
+                        </div>
+                        <button onClick={() => cambiarDia(1)} className="p-2.5 hover:bg-surface-2 rounded-xl text-texto-muted transition-colors">
+                            <ChevronRight size={20} />
+                        </button>
                     </div>
-                    <button onClick={() => cambiarDia(1)} className="p-2 hover:bg-surface-2 rounded-lg text-texto-muted transition-colors"><ChevronRight size={20} /></button>
                 </div>
-            </div>
 
-            <div className="space-y-4">
+                {/* List */}
                 {loading ? (
-                    <div className="py-20 flex flex-col items-center">
+                    <div className="py-20 flex justify-center">
                         <Loader2 className="animate-spin text-rojo" size={32} />
                     </div>
                 ) : turnos.length > 0 ? (
-                    <div className="grid gap-4">
-                        {turnos.sort((a, b) => a.hora.localeCompare(b.hora)).map(turno => (
-                            <div key={turno.id} className="bg-surface border border-borde rounded-2xl overflow-hidden group hover:border-rojo/40 transition-all shadow-md">
-                                <div className="p-5 flex flex-col lg:flex-row lg:items-center gap-6">
-                                    <div className="flex items-center gap-4 min-w-[220px]">
-                                        <div className="w-14 h-14 bg-surface-2 rounded-2xl flex flex-col items-center justify-center border border-borde shadow-inner">
-                                            <span className="text-[10px] font-black text-rojo uppercase tracking-tighter">HORA</span>
-                                            <span className="text-lg font-black text-white leading-none">{turno.hora}</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-bold text-rojo uppercase tracking-[0.2em]">{turno.servicio?.nombre}</p>
-                                            <p className="text-xl font-black italic uppercase italic tracking-tight">{turno.nombreCliente}</p>
-                                        </div>
-                                    </div>
+                    <>
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={`${fecha}-${page}`}
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0 }}
+                                className="space-y-3"
+                            >
+                                {paged.map((t, i) => (
+                                    <TurnoCard
+                                        key={t.id}
+                                        turno={t}
+                                        index={i}
+                                        onStatusPress={setSelectedTurno}
+                                    />
+                                ))}
+                            </motion.div>
+                        </AnimatePresence>
 
-                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="flex items-center gap-3 text-texto-muted">
-                                            <div className="w-8 h-8 bg-surface-2 rounded-lg flex items-center justify-center text-rojo border border-borde">
-                                                <Phone size={14} />
-                                            </div>
-                                            <p className="text-sm font-bold tracking-tight">{turno.telefonoCliente}</p>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-texto-muted">
-                                            <div className="w-8 h-8 bg-surface-2 rounded-lg flex items-center justify-center text-rojo border border-borde">
-                                                <Wrench size={14} />
-                                            </div>
-                                            <p className="text-sm font-medium">Carga: {turno.servicio?.duracion} min</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3 border-t lg:border-t-0 border-borde pt-4 lg:pt-0">
-                                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border
-                      ${turno.estado === 'pendiente' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
-                                                turno.estado === 'confirmado' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
-                                                    turno.estado === 'cancelado' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                                                        'bg-gray-500/10 text-gray-400 border-gray-500/20'}
-                    `}>
-                                            {turno.estado}
-                                        </div>
-
-                                        <div className="flex items-center gap-2 ml-auto lg:ml-0">
-                                            {turno.estado === 'pendiente' && (
-                                                <button
-                                                    onClick={() => handleEstado(turno.id, 'confirmado')}
-                                                    className="p-2 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white rounded-xl transition-all border border-green-500/20 shadow-sm"
-                                                    title="Confirmar"
-                                                >
-                                                    <CheckCircle size={18} />
-                                                </button>
-                                            )}
-                                            {(turno.estado === 'pendiente' || turno.estado === 'confirmado') && (
-                                                <button
-                                                    onClick={() => handleEstado(turno.id, 'cancelado')}
-                                                    className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all border border-red-500/20 shadow-sm"
-                                                    title="Cancelar"
-                                                >
-                                                    <XCircle size={18} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                                {turno.descripcionTrabajo && (
-                                    <div className="bg-black/20 px-5 py-3 text-xs text-texto-muted italic border-t border-borde">
-                                        "{turno.descripcionTrabajo}"
-                                    </div>
-                                )}
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between gap-3 pt-2">
+                                <button
+                                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                                    disabled={page === 0}
+                                    className="flex-1 h-12 rounded-2xl border border-borde font-bold text-sm text-texto-muted disabled:opacity-30 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                                >
+                                    <ChevronLeft size={18} /> Anterior
+                                </button>
+                                <span className="text-texto-muted text-xs font-bold whitespace-nowrap">
+                                    {page + 1} / {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                    disabled={page === totalPages - 1}
+                                    className="flex-1 h-12 rounded-2xl border border-borde font-bold text-sm text-texto-muted disabled:opacity-30 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                                >
+                                    Siguiente <ChevronRight size={18} />
+                                </button>
                             </div>
-                        ))}
-                    </div>
+                        )}
+                    </>
                 ) : (
-                    <div className="bg-surface border border-dashed border-borde rounded-3xl p-20 text-center shadow-xl">
-                        <Calendar size={48} className="mx-auto text-rojo/20 mb-4" />
-                        <p className="text-texto-muted font-bold uppercase tracking-widest text-xs">Agenda vacía para hoy</p>
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <Calendar size={56} className="text-rojo/20 mb-4" />
+                        <p className="font-black uppercase italic text-white text-lg">Agenda vacía</p>
+                        <p className="text-texto-muted text-sm mt-1">No hay turnos para este día.</p>
                     </div>
                 )}
             </div>
-        </div>
+
+            {selectedTurno && (
+                <StatusBottomSheet
+                    turno={selectedTurno}
+                    onClose={() => setSelectedTurno(null)}
+                    onChangeEstado={handleChangeEstado}
+                />
+            )}
+        </>
     );
 }

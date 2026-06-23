@@ -1,147 +1,171 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { getBloqueos, crearBloqueo, eliminarBloqueo } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { Bloqueo } from "@/types";
-import {
-    Ban,
-    Calendar,
-    Trash2,
-    Plus,
-    Loader2,
-    AlertTriangle,
-    X
-} from "lucide-react";
+import Toast from "@/components/admin/Toast";
+import { Ban, Plus, Trash2, Loader2, AlertTriangle, X } from "lucide-react";
 
 export default function BloqueosPage() {
     const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
-    const [form, setForm] = useState({
-        fecha: new Date().toISOString().split('T')[0],
-        motivo: ""
-    });
+    const [sheetOpen, setSheetOpen] = useState(false);
+    const [form, setForm] = useState({ fecha: new Date().toISOString().split("T")[0], motivo: "" });
+    const [toast, setToast] = useState<string | null>(null);
 
-    const load = async () => {
+    const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2000); };
+
+    const load = useCallback(async () => {
         setLoading(true);
-        try {
-            const data = await getBloqueos();
-            setBloqueos(data);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+        try { setBloqueos(await getBloqueos()); }
+        catch (e) { console.error(e); }
+        finally { setLoading(false); }
+    }, []);
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => { load(); }, [load]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const token = getToken();
         if (!token) return;
-
         try {
             await crearBloqueo(token, form);
-            setShowModal(false);
-            setForm({ fecha: new Date().toISOString().split('T')[0], motivo: "" });
+            showToast("Fecha bloqueada");
+            setSheetOpen(false);
+            setForm({ fecha: new Date().toISOString().split("T")[0], motivo: "" });
             load();
-        } catch (error) {
-            alert("Error al crear bloqueo");
-        }
+        } catch { showToast("Error al bloquear"); }
     };
 
     const handleEliminar = async (id: number) => {
         const token = getToken();
         if (!token) return;
-        if (!confirm("¿Eliminar este bloqueo?")) return;
         try {
             await eliminarBloqueo(token, id);
-            load();
-        } catch (error) {
-            alert("Error al eliminar");
-        }
+            setBloqueos(prev => prev.filter(b => b.id !== id));
+            showToast("Bloqueo eliminado");
+        } catch { showToast("Error al eliminar"); }
     };
 
     return (
-        <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-                        Fechas <span className="text-rojo">Bloqueadas</span>
-                    </h1>
-                    <p className="text-texto-muted text-sm font-medium">Bloqueá días específicos (feriados, vacaciones, mantenimiento).</p>
+        <>
+            <Toast message={toast} />
+            <div className="space-y-5">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h1 className="text-2xl font-black italic uppercase tracking-tighter">
+                            Fechas <span className="text-rojo">Bloqueadas</span>
+                        </h1>
+                        <p className="text-texto-muted text-[11px] font-medium">Feriados, vacaciones, mantenimiento.</p>
+                    </div>
+                    <button
+                        onClick={() => setSheetOpen(true)}
+                        className="h-11 px-4 bg-rojo text-white rounded-2xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-rojo/25 active:scale-95 transition-all flex-shrink-0"
+                    >
+                        <Plus size={18} /> Bloquear
+                    </button>
                 </div>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="h-12 px-6 bg-rojo text-white rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-rojo/30 active:scale-95 transition-all"
-                >
-                    <Plus size={20} /> Bloquear Fecha
-                </button>
-            </div>
 
-            <div className="grid gap-4">
                 {loading ? (
-                    <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-rojo" /></div>
+                    <div className="py-16 flex justify-center"><Loader2 className="animate-spin text-rojo" size={28} /></div>
                 ) : bloqueos.length > 0 ? (
-                    bloqueos.map(b => (
-                        <div key={b.id} className="bg-surface border border-borde p-5 rounded-2xl flex items-center justify-between group hover:border-rojo/40 transition-all">
-                            <div className="flex items-center gap-5">
-                                <div className="w-12 h-12 bg-surface-2 rounded-xl flex flex-col items-center justify-center border border-borde">
+                    <div className="space-y-3">
+                        {bloqueos.map((b, i) => (
+                            <motion.div
+                                key={b.id}
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.06 }}
+                                className="bg-surface border border-borde rounded-2xl p-4 min-h-[72px] flex items-center gap-4"
+                            >
+                                <div className="w-12 h-12 bg-surface-2 rounded-xl flex items-center justify-center border border-borde flex-shrink-0">
                                     <Ban size={20} className="text-rojo" />
                                 </div>
-                                <div>
-                                    <h3 className="text-lg font-black uppercase italic italic">{new Date(b.fecha + "T12:00:00").toLocaleDateString("es-AR", { day: 'numeric', month: 'long', year: 'numeric' })}</h3>
-                                    <p className="text-texto-muted text-sm italic">{b.motivo || "Sin motivo especificado"}</p>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-black uppercase italic text-base">
+                                        {new Date(b.fecha + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}
+                                    </p>
+                                    {b.motivo && <p className="text-texto-muted text-[11px] italic mt-0.5">{b.motivo}</p>}
                                 </div>
-                            </div>
-                            <button
-                                onClick={() => handleEliminar(b.id)}
-                                className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all"
-                            >
-                                <Trash2 size={18} />
-                            </button>
-                        </div>
-                    ))
+                                <button
+                                    onClick={() => handleEliminar(b.id)}
+                                    className="w-11 h-11 flex-shrink-0 flex items-center justify-center bg-red-500/10 text-red-500 rounded-xl border border-red-500/15 active:scale-95 transition-all"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </motion.div>
+                        ))}
+                    </div>
                 ) : (
-                    <div className="bg-surface border border-dashed border-borde rounded-2xl p-20 text-center">
-                        <Ban size={48} className="mx-auto text-texto-muted opacity-20 mb-4" />
-                        <p className="text-texto-muted text-sm italic">No hay fechas bloqueadas actualmente.</p>
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <Ban size={52} className="text-rojo/20 mb-4" />
+                        <p className="font-black uppercase italic text-white">Sin bloqueos activos</p>
+                        <p className="text-texto-muted text-sm mt-1">Todos los días están disponibles.</p>
                     </div>
                 )}
             </div>
 
-            {showModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-surface border border-borde w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl">
-                        <div className="p-6 border-b border-borde flex justify-between items-center bg-surface-2/50">
-                            <h2 className="text-xl font-black uppercase italic italic"><span className="text-rojo">Bloquear</span> Fecha</h2>
-                            <button onClick={() => setShowModal(false)} className="text-texto-muted hover:text-white"><X size={24} /></button>
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="text-[10px] font-bold uppercase text-texto-muted mb-2 block tracking-widest pl-1">Fecha</label>
-                                <input required type="date" value={form.fecha} onChange={e => setForm({ ...form, fecha: e.target.value })} className="w-full h-12 bg-bg border border-borde rounded-xl px-4 outline-none focus:border-rojo text-white font-bold" />
+            {/* Bottom Sheet para bloquear fecha */}
+            <AnimatePresence>
+                {sheetOpen && (
+                    <div className="fixed inset-0 z-50 flex flex-col justify-end">
+                        <motion.div
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                            onClick={() => setSheetOpen(false)}
+                        />
+                        <motion.div
+                            initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+                            transition={{ type: "spring", damping: 28, stiffness: 280 }}
+                            className="relative bg-[#141414] border-t border-borde rounded-t-3xl z-10 pb-10"
+                        >
+                            <div className="w-10 h-1 bg-gray-700 rounded-full mx-auto mt-4" />
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-borde">
+                                <h2 className="text-lg font-black italic uppercase"><span className="text-rojo">Bloquear</span> Fecha</h2>
+                                <button onClick={() => setSheetOpen(false)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-2 text-texto-muted">
+                                    <X size={18} />
+                                </button>
                             </div>
-                            <div>
-                                <label className="text-[10px] font-bold uppercase text-texto-muted mb-2 block tracking-widest pl-1">Motivo (Opcional)</label>
-                                <textarea value={form.motivo} onChange={e => setForm({ ...form, motivo: e.target.value })} rows={2} placeholder="Ej: Feriado puente..." className="w-full bg-bg border border-borde rounded-xl p-4 outline-none focus:border-rojo resize-none text-sm" />
-                            </div>
-                            <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl flex gap-3 text-yellow-500 text-[11px] font-medium italic">
-                                <AlertTriangle size={16} className="shrink-0" />
-                                <span>Esta fecha no aparecerá disponible para que los clientes reserven.</span>
-                            </div>
-                            <button
-                                type="submit"
-                                className="w-full h-14 bg-rojo text-white rounded-xl font-bold text-lg mt-4 shadow-lg shadow-rojo/30 active:scale-95 transition-all flex items-center justify-center gap-2"
-                            >
-                                Bloquear Ahora
-                            </button>
-                        </form>
+                            <form onSubmit={handleSubmit} className="px-6 pt-5 space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-texto-muted block mb-1.5">Fecha *</label>
+                                    <input
+                                        required
+                                        type="date"
+                                        value={form.fecha}
+                                        onChange={e => setForm({ ...form, fecha: e.target.value })}
+                                        style={{ fontSize: "16px" }}
+                                        className="w-full h-[52px] bg-bg border border-borde rounded-2xl px-4 outline-none focus:border-rojo text-white font-bold transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-texto-muted block mb-1.5">Motivo</label>
+                                    <input
+                                        type="text"
+                                        value={form.motivo}
+                                        onChange={e => setForm({ ...form, motivo: e.target.value })}
+                                        placeholder="Ej: Feriado puente"
+                                        style={{ fontSize: "16px" }}
+                                        className="w-full h-[52px] bg-bg border border-borde rounded-2xl px-4 outline-none focus:border-rojo text-white transition-colors"
+                                    />
+                                </div>
+                                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-3 flex gap-2.5 items-center">
+                                    <AlertTriangle size={15} className="text-yellow-500 flex-shrink-0" />
+                                    <p className="text-yellow-500/80 text-[11px]">Esta fecha no quedará disponible para los clientes.</p>
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full h-[52px] bg-rojo text-white rounded-2xl font-bold text-[16px] flex items-center justify-center gap-2 shadow-lg shadow-rojo/25 active:scale-[0.98] transition-all"
+                                >
+                                    <Ban size={18} /> Bloquear Ahora
+                                </button>
+                            </form>
+                        </motion.div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </AnimatePresence>
+        </>
     );
 }

@@ -1,193 +1,174 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getServicios, crearServicio, actualizarServicio, eliminarServicio } from "@/lib/api";
+import { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { getServicios, crearServicio, actualizarServicio } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { Servicio } from "@/types";
-import {
-    Plus,
-    Wrench,
-    Clock,
-    DollarSign,
-    Trash2,
-    Edit3,
-    Loader2,
-    CheckCircle2,
-    XCircle,
-    Save,
-    X
-} from "lucide-react";
+import ServicioBottomSheet from "@/components/admin/ServicioBottomSheet";
+import Toast from "@/components/admin/Toast";
+import { Plus, Clock, DollarSign, Loader2, ChevronDown, CheckCircle2, XCircle, Edit3 } from "lucide-react";
+
+const PAGE_INIT = 5;
 
 export default function ServiciosPage() {
     const [servicios, setServicios] = useState<Servicio[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
+    const [showAll, setShowAll] = useState(false);
     const [editing, setEditing] = useState<Servicio | null>(null);
-    const [form, setForm] = useState({
-        nombre: "",
-        descripcion: "",
-        duracion: 30,
-        precio: 0,
-        activo: true
-    });
+    const [sheetOpen, setSheetOpen] = useState(false);
+    const [toast, setToast] = useState<string | null>(null);
 
-    const load = async () => {
+    const showToast = (msg: string) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 2000);
+    };
+
+    const load = useCallback(async () => {
         setLoading(true);
         try {
             const data = await getServicios();
             setServicios(data);
-        } catch (error) {
-            console.error(error);
+        } catch (e) {
+            console.error(e);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => { load(); }, [load]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSave = async (form: any) => {
         const token = getToken();
         if (!token) return;
-
-        try {
-            if (editing) {
-                await actualizarServicio(token, editing.id, form);
-            } else {
-                await crearServicio(token, form);
-            }
-            setShowModal(false);
-            setEditing(null);
-            setForm({ nombre: "", descripcion: "", duracion: 30, precio: 0, activo: true });
-            load();
-        } catch (error) {
-            alert("Error al guardar servicio");
+        if (editing) {
+            await actualizarServicio(token, editing.id, form);
+            showToast("Servicio actualizado");
+        } else {
+            await crearServicio(token, form);
+            showToast("Servicio creado");
         }
+        load();
     };
 
-    const handleEdit = (s: Servicio) => {
-        setEditing(s);
-        setForm({
-            nombre: s.nombre,
-            descripcion: s.descripcion || "",
-            duracion: s.duracion,
-            precio: s.precio || 0,
-            activo: s.activo
-        });
-        setShowModal(true);
-    };
-
-    const handleToggleActivo = async (s: Servicio) => {
+    const toggleActivo = async (s: Servicio) => {
         const token = getToken();
         if (!token) return;
         try {
             await actualizarServicio(token, s.id, { ...s, activo: !s.activo });
+            showToast(s.activo ? "Servicio desactivado" : "Servicio activado");
             load();
-        } catch (error) {
-            alert("Error al cambiar estado");
+        } catch {
+            showToast("Error al cambiar estado");
         }
     };
 
+    const openNew = () => { setEditing(null); setSheetOpen(true); };
+    const openEdit = (s: Servicio) => { setEditing(s); setSheetOpen(true); };
+
+    const displayed = showAll ? servicios : servicios.slice(0, PAGE_INIT);
+
     return (
-        <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-                        Nuestros <span className="text-rojo">Servicios</span>
-                    </h1>
-                    <p className="text-texto-muted text-sm font-medium">Configurá las prestaciones del taller.</p>
+        <>
+            <Toast message={toast} />
+            <div className="space-y-5">
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h1 className="text-2xl font-black italic uppercase tracking-tighter">
+                            Nuestros <span className="text-rojo">Servicios</span>
+                        </h1>
+                        <p className="text-texto-muted text-[11px] font-medium mt-0.5">
+                            {servicios.length} servicios configurados
+                        </p>
+                    </div>
+                    <button
+                        onClick={openNew}
+                        className="h-11 px-4 bg-rojo text-white rounded-2xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-rojo/25 active:scale-95 transition-all flex-shrink-0"
+                    >
+                        <Plus size={18} /> Nuevo
+                    </button>
                 </div>
-                <button
-                    onClick={() => { setEditing(null); setForm({ nombre: "", descripcion: "", duracion: 30, precio: 0, activo: true }); setShowModal(true); }}
-                    className="h-12 px-6 bg-rojo text-white rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-rojo/30 active:scale-95 transition-all"
-                >
-                    <Plus size={20} /> Nuevo Servicio
-                </button>
-            </div>
 
-            <div className="grid gap-4">
+                {/* List */}
                 {loading ? (
-                    <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-rojo" /></div>
+                    <div className="py-16 flex justify-center">
+                        <Loader2 className="animate-spin text-rojo" size={28} />
+                    </div>
                 ) : (
-                    servicios.map(s => (
-                        <div key={s.id} className={`
-              bg-surface border p-5 rounded-2xl flex flex-col md:flex-row md:items-center gap-6 transition-all
-              ${s.activo ? 'border-borde' : 'border-dashed border-gray-800 opacity-60'}
-            `}>
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-xl font-black uppercase italic tracking-tight">{s.nombre}</h3>
-                                    {!s.activo && <span className="text-[10px] bg-gray-800 text-gray-400 px-2 py-0.5 rounded uppercase font-bold">Inactivo</span>}
-                                </div>
-                                <p className="text-texto-muted text-sm line-clamp-1">{s.descripcion}</p>
-                                <div className="flex items-center gap-4 mt-3">
-                                    <div className="flex items-center gap-1.5 text-xs font-bold text-texto-muted">
-                                        <Clock size={14} className="text-rojo" /> {s.duracion} min
+                    <AnimatePresence>
+                        <div className="space-y-3">
+                            {displayed.map((s, i) => (
+                                <motion.div
+                                    key={s.id}
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.06, duration: 0.2 }}
+                                    className={`bg-surface border rounded-2xl p-4 min-h-[80px] flex items-center gap-4 transition-all ${s.activo ? "border-borde" : "border-gray-800 opacity-50"
+                                        }`}
+                                >
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-black text-base uppercase italic truncate">{s.nombre}</p>
+                                            {!s.activo && (
+                                                <span className="text-[9px] bg-gray-800 text-gray-500 px-2 py-0.5 rounded uppercase font-bold flex-shrink-0">Inactivo</span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-3 mt-1">
+                                            <span className="text-[11px] text-texto-muted flex items-center gap-1">
+                                                <Clock size={11} className="text-rojo" /> {s.duracion} min
+                                            </span>
+                                            {s.precio ? (
+                                                <span className="text-[11px] text-texto-muted flex items-center gap-1">
+                                                    <DollarSign size={11} className="text-rojo" /> {s.precio.toLocaleString()}
+                                                </span>
+                                            ) : null}
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-1.5 text-xs font-bold text-texto-muted">
-                                        <DollarSign size={14} className="text-rojo" /> {s.precio?.toLocaleString()}
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div className="flex items-center gap-2 border-t md:border-t-0 border-borde pt-4 md:pt-0">
-                                <button
-                                    onClick={() => handleToggleActivo(s)}
-                                    className={`p-2 rounded-xl border transition-all ${s.activo ? 'bg-gray-800/20 border-gray-700 text-gray-400 hover:text-white' : 'bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500 hover:text-white'}`}
-                                    title={s.activo ? "Desactivar" : "Activar"}
-                                >
-                                    {s.activo ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
-                                </button>
-                                <button
-                                    onClick={() => handleEdit(s)}
-                                    className="p-2 bg-rojo/10 border border-rojo/20 text-rojo rounded-xl hover:bg-rojo hover:text-white transition-all"
-                                    title="Editar"
-                                >
-                                    <Edit3 size={18} />
-                                </button>
-                            </div>
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        <button
+                                            onClick={() => toggleActivo(s)}
+                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all active:scale-95 ${s.activo
+                                                    ? "bg-gray-800/30 border-gray-700 text-gray-500"
+                                                    : "bg-green-500/10 border-green-500/20 text-green-500"
+                                                }`}
+                                        >
+                                            {s.activo ? <XCircle size={16} /> : <CheckCircle2 size={16} />}
+                                        </button>
+                                        <button
+                                            onClick={() => openEdit(s)}
+                                            className="w-10 h-10 rounded-xl flex items-center justify-center bg-rojo/10 border border-rojo/20 text-rojo active:scale-95 transition-all"
+                                        >
+                                            <Edit3 size={16} />
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ))}
                         </div>
-                    ))
+                    </AnimatePresence>
+                )}
+
+                {/* Ver más */}
+                {!showAll && servicios.length > PAGE_INIT && (
+                    <button
+                        onClick={() => setShowAll(true)}
+                        className="w-full h-12 border border-dashed border-borde rounded-2xl text-texto-muted text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    >
+                        <ChevronDown size={18} /> Ver {servicios.length - PAGE_INIT} más
+                    </button>
                 )}
             </div>
 
-            {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-surface border border-borde w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl">
-                        <div className="p-6 border-b border-borde flex justify-between items-center bg-surface-2/50">
-                            <h2 className="text-xl font-black uppercase italic italic">{editing ? 'Editar' : 'Nuevo'} <span className="text-rojo">Servicio</span></h2>
-                            <button onClick={() => setShowModal(false)} className="text-texto-muted hover:text-white"><X size={24} /></button>
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="text-[10px] font-bold uppercase text-texto-muted mb-2 block tracking-widest pl-1">Nombre</label>
-                                <input required value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} className="w-full h-12 bg-bg border border-borde rounded-xl px-4 outline-none focus:border-rojo" />
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-bold uppercase text-texto-muted mb-2 block tracking-widest pl-1">Descripción</label>
-                                <textarea value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })} rows={2} className="w-full bg-bg border border-borde rounded-xl p-4 outline-none focus:border-rojo resize-none" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-[10px] font-bold uppercase text-texto-muted mb-2 block tracking-widest pl-1">Duración (min)</label>
-                                    <input type="number" required value={form.duracion} onChange={e => setForm({ ...form, duracion: parseInt(e.target.value) })} className="w-full h-12 bg-bg border border-borde rounded-xl px-4 outline-none focus:border-rojo" />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-bold uppercase text-texto-muted mb-2 block tracking-widest pl-1">Precio ($)</label>
-                                    <input type="number" value={form.precio} onChange={e => setForm({ ...form, precio: parseInt(e.target.value) })} className="w-full h-12 bg-bg border border-borde rounded-xl px-4 outline-none focus:border-rojo" />
-                                </div>
-                            </div>
-                            <button
-                                type="submit"
-                                className="w-full h-14 bg-rojo text-white rounded-xl font-bold text-lg mt-4 shadow-lg shadow-rojo/30 active:scale-95 transition-all flex items-center justify-center gap-2"
-                            >
-                                <Save size={20} /> Guardar Cambios
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
-        </div>
+            {/* Bottom Sheet */}
+            <ServicioBottomSheet
+                open={sheetOpen}
+                servicio={editing}
+                onClose={() => setSheetOpen(false)}
+                onSave={handleSave}
+            />
+        </>
     );
 }
