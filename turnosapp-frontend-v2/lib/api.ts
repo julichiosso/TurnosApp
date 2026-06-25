@@ -1,6 +1,7 @@
 import { Servicio, SlotHorario, Turno, DashboardStats, HorarioConfig, Bloqueo } from '../types';
 
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3002';
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3002';
+
 
 
 // --- PÚBLICAS ---
