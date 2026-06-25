@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 import HeroSection from "@/components/publico/HeroSection";
 import ServicioCard from "@/components/publico/ServicioCard";
 import CalendarioFecha from "@/components/publico/CalendarioFecha";
@@ -93,24 +92,14 @@ export default function Home() {
     }
   };
 
-  const direction = useRef<1 | -1>(1);
-
   const siguientePaso = () => {
-    direction.current = 1;
     setError(null);
     setPaso(p => p + 1);
   };
 
   const volverPaso = () => {
-    direction.current = -1;
     setError(null);
     setPaso(p => p - 1);
-  };
-
-  const slideVariants = {
-    enter: { opacity: 0, x: direction.current * 40 },
-    center: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: direction.current * -40 },
   };
 
   const servicioSeleccionado = servicios.find(s => s.id === servicioId);
@@ -186,19 +175,10 @@ export default function Home() {
             </div>
           )}
 
-          <AnimatePresence mode="wait" custom={direction.current}>
+          <div>
             {/* PASO 1: SERVICIOS */}
             {paso === 1 && (
-              <motion.div
-                key="paso1"
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                style={{ overflowX: "hidden" }}
-                className="space-y-6"
-              >
+              <div key="paso1" className="space-y-6 step-enter" style={{ overflowX: "hidden" }}>
                 <div className="text-center">
                   <h2 className="text-xl font-black uppercase italic tracking-tight flex items-center justify-center gap-2">
                     <IconGear size={20} className="text-rojo" /> 1. Elegí el <span className="text-rojo">Servicio</span>
@@ -240,21 +220,12 @@ export default function Home() {
                     Siguiente <IconChevronRight size={20} />
                   </button>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* PASO 2: FECHA */}
             {paso === 2 && (
-              <motion.div
-                key="paso2"
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                style={{ overflowX: "hidden" }}
-                className="space-y-8"
-              >
+              <div key="paso2" className="space-y-8 step-enter" style={{ overflowX: "hidden" }}>
                 <div className="text-center">
                   <h2 className="text-xl font-black uppercase italic tracking-tight flex items-center justify-center gap-2">
                     <IconCalendar size={20} className="text-rojo" /> 2. Elegí la <span className="text-rojo">Fecha</span>
@@ -286,21 +257,12 @@ export default function Home() {
                     Siguiente <IconChevronRight size={20} />
                   </button>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* PASO 3: HORARIO */}
             {paso === 3 && (
-              <motion.div
-                key="paso3"
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                style={{ overflowX: "hidden" }}
-                className="space-y-8"
-              >
+              <div key="paso3" className="space-y-8 step-enter" style={{ overflowX: "hidden" }}>
                 <div className="text-center">
                   <h2 className="text-xl font-black uppercase italic tracking-tight flex items-center justify-center gap-2">
                     <IconClock size={20} className="text-rojo" /> 3. Elegí el <span className="text-rojo">Horario</span>
@@ -329,21 +291,12 @@ export default function Home() {
                     Siguiente <IconChevronRight size={20} />
                   </button>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* PASO 4: DATOS */}
             {paso === 4 && (
-              <motion.div
-                key="paso4"
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                style={{ overflowX: "hidden" }}
-                className="space-y-6"
-              >
+              <div key="paso4" className="space-y-6 step-enter" style={{ overflowX: "hidden" }}>
                 <div className="text-center">
                   <h2 className="text-xl font-black uppercase italic tracking-tight flex items-center justify-center gap-2">
                     <IconCheck size={20} className="text-rojo" /> 4. Tus <span className="text-rojo">Datos</span>
@@ -358,9 +311,9 @@ export default function Home() {
                 <button onClick={volverPaso} className="w-full text-texto-muted text-sm font-bold uppercase tracking-widest mt-4">
                   Volver a Horarios
                 </button>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>

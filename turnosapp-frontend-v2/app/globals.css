@@ -35,6 +35,13 @@ button, select, input, textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Bottom sheet animations */
+/* Bottom sheet & toast animations */
 @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
 @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+@keyframes slideDownFade { from { opacity: 0; transform: translateX(-50%) translateY(-12px) } to { opacity: 1; transform: translateX(-50%) translateY(0) } }
+
+/* Step wizard slide transitions */
+@keyframes stepEnterRight { from { opacity: 0; transform: translateX(32px) } to { opacity: 1; transform: translateX(0) } }
+@keyframes stepEnterLeft  { from { opacity: 0; transform: translateX(-32px) } to { opacity: 1; transform: translateX(0) } }
+.step-enter { animation: stepEnterRight 0.22s ease; }
+.step-enter-back { animation: stepEnterLeft 0.22s ease; }

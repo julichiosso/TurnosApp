@@ -1,7 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect } from "react";
 import { IconCheck } from "@/components/icons";
 
 interface Props {
@@ -9,20 +7,32 @@ interface Props {
 }
 
 export default function Toast({ message }: Props) {
+    if (!message) return null;
+
     return (
-        <AnimatePresence>
-            {message && (
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.25 }}
-                    className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-green-500 text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 whitespace-nowrap"
-                >
-                    <IconCheck size={16} />
-                    {message}
-                </motion.div>
-            )}
-        </AnimatePresence>
+        <div
+            style={{
+                position: "fixed",
+                top: 16,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 100,
+                background: "#22c55e",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 700,
+                padding: "12px 20px",
+                borderRadius: 16,
+                boxShadow: "0 10px 25px rgba(0,0,0,0.4)",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                whiteSpace: "nowrap",
+                animation: "slideDownFade 0.25s ease",
+            }}
+        >
+            <IconCheck size={16} />
+            {message}
+        </div>
     );
 }
