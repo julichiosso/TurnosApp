@@ -10,7 +10,15 @@ import FormularioCliente from "@/components/publico/FormularioCliente";
 import ConfirmacionTurno from "@/components/publico/ConfirmacionTurno";
 import { getServicios, getDisponibilidad, crearTurnoPublico } from "@/lib/api";
 import { Servicio, SlotHorario, Turno } from "@/types";
-import { ChevronRight, Loader2, Calendar, Clock, LayoutGrid, UserCheck, AlertCircle } from "lucide-react";
+import {
+  IconChevronRight,
+  IconLoader,
+  IconCalendar,
+  IconClock,
+  IconGear,
+  IconCheck,
+  IconWarning
+} from "@/components/icons";
 
 export default function Home() {
   // Estados del flujo
@@ -173,7 +181,7 @@ export default function Home() {
         <div className="max-w-md mx-auto">
           {error && (
             <div className="mb-6 p-4 bg-rojo/10 border border-rojo/20 rounded-xl flex items-center gap-3 text-rojo text-sm animate-shake">
-              <AlertCircle size={18} />
+              <IconWarning size={18} />
               <span>{error}</span>
             </div>
           )}
@@ -193,13 +201,13 @@ export default function Home() {
               >
                 <div className="text-center">
                   <h2 className="text-xl font-black uppercase italic tracking-tight flex items-center justify-center gap-2">
-                    <LayoutGrid size={20} className="text-rojo" /> 1. Elegí el <span className="text-rojo">Servicio</span>
+                    <IconGear size={20} className="text-rojo" /> 1. Elegí el <span className="text-rojo">Servicio</span>
                   </h2>
                 </div>
 
                 {loadingServicios ? (
                   <div className="flex flex-col items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 text-rojo animate-spin" />
+                    <IconLoader className="w-8 h-8 text-rojo" />
                   </div>
                 ) : (
                   <div className="grid gap-[10px]">
@@ -229,7 +237,7 @@ export default function Home() {
                         : "bg-surface-2 text-texto-muted cursor-not-allowed"}
                     `}
                   >
-                    Siguiente <ChevronRight size={20} />
+                    Siguiente <IconChevronRight size={20} />
                   </button>
                 </div>
               </motion.div>
@@ -249,7 +257,7 @@ export default function Home() {
               >
                 <div className="text-center">
                   <h2 className="text-xl font-black uppercase italic tracking-tight flex items-center justify-center gap-2">
-                    <Calendar size={20} className="text-rojo" /> 2. Elegí la <span className="text-rojo">Fecha</span>
+                    <IconCalendar size={20} className="text-rojo" /> 2. Elegí la <span className="text-rojo">Fecha</span>
                   </h2>
                   <p className="text-texto-muted text-[10px] mt-2 uppercase tracking-[0.2em] font-bold">
                     {servicioSeleccionado?.nombre} · {servicioSeleccionado?.duracion} min
@@ -275,7 +283,7 @@ export default function Home() {
                         : "bg-surface-2 text-texto-muted cursor-not-allowed"}
                     `}
                   >
-                    Siguiente <ChevronRight size={20} />
+                    Siguiente <IconChevronRight size={20} />
                   </button>
                 </div>
               </motion.div>
@@ -295,7 +303,7 @@ export default function Home() {
               >
                 <div className="text-center">
                   <h2 className="text-xl font-black uppercase italic tracking-tight flex items-center justify-center gap-2">
-                    <Clock size={20} className="text-rojo" /> 3. Elegí el <span className="text-rojo">Horario</span>
+                    <IconClock size={20} className="text-rojo" /> 3. Elegí el <span className="text-rojo">Horario</span>
                   </h2>
                   <p className="text-texto-muted text-[10px] mt-2 uppercase tracking-[0.2em] font-bold">
                     {new Date(fecha + "T12:00:00").toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}
@@ -318,7 +326,7 @@ export default function Home() {
                         : "bg-surface-2 text-texto-muted cursor-not-allowed"}
                     `}
                   >
-                    Siguiente <ChevronRight size={20} />
+                    Siguiente <IconChevronRight size={20} />
                   </button>
                 </div>
               </motion.div>
@@ -338,7 +346,7 @@ export default function Home() {
               >
                 <div className="text-center">
                   <h2 className="text-xl font-black uppercase italic tracking-tight flex items-center justify-center gap-2">
-                    <UserCheck size={20} className="text-rojo" /> 4. Tus <span className="text-rojo">Datos</span>
+                    <IconCheck size={20} className="text-rojo" /> 4. Tus <span className="text-rojo">Datos</span>
                   </h2>
                   <p className="text-texto-muted text-[10px] mt-2 uppercase tracking-[0.2em] font-bold">
                     {servicioSeleccionado?.nombre} · {new Date(fecha + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" })} · {hora} hs

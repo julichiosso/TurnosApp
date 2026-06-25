@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, Calendar, Clock, Wrench } from "lucide-react";
+import { IconCalendar, IconClock, IconWrench } from "@/components/icons";
 import { Servicio } from "../../types";
 
 interface Props {
@@ -83,7 +83,7 @@ export default function ConfirmacionTurno({ turno, servicio }: Props) {
             {/* Summary card */}
             <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-5 text-left space-y-4">
                 <div className="flex items-start gap-3">
-                    <Wrench size={16} className="text-[#CC0000] mt-0.5 flex-shrink-0" />
+                    <IconWrench size={16} className="text-[#CC0000] mt-0.5 flex-shrink-0" />
                     <div>
                         <p className="text-[10px] uppercase font-bold text-gray-600 tracking-widest mb-0.5">Servicio</p>
                         <p className="font-semibold text-white">{servicio.nombre}</p>
@@ -91,14 +91,14 @@ export default function ConfirmacionTurno({ turno, servicio }: Props) {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-start gap-3">
-                        <Calendar size={15} className="text-[#CC0000] mt-0.5 flex-shrink-0" />
+                        <IconCalendar size={15} className="text-[#CC0000] mt-0.5 flex-shrink-0" />
                         <div>
                             <p className="text-[10px] uppercase font-bold text-gray-600 tracking-widest mb-0.5">Fecha</p>
                             <p className="font-semibold text-white text-sm">{formatearFecha(turno.fecha)}</p>
                         </div>
                     </div>
                     <div className="flex items-start gap-3">
-                        <Clock size={15} className="text-[#CC0000] mt-0.5 flex-shrink-0" />
+                        <IconClock size={15} className="text-[#CC0000] mt-0.5 flex-shrink-0" />
                         <div>
                             <p className="text-[10px] uppercase font-bold text-gray-600 tracking-widest mb-0.5">Hora</p>
                             <p className="font-semibold text-white">{turno.hora} hs</p>
@@ -117,7 +117,9 @@ export default function ConfirmacionTurno({ turno, servicio }: Props) {
                     onClick={handleWhatsApp}
                     className="w-full h-14 bg-[#25D366] text-white rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg shadow-green-900/20"
                 >
-                    <MessageSquare size={20} /> Avisar por WhatsApp
+                    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+                    </svg> Avisar por WhatsApp
                 </button>
 
                 <button
