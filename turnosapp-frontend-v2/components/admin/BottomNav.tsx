@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CalendarRange, Wrench, Clock, Ban } from "lucide-react";
+import { IconHome, IconCalendar, IconWrench, IconClock, IconBan } from "@/components/icons";
 
 const NAV = [
-    { label: "Hoy", href: "/admin", icon: LayoutDashboard },
-    { label: "Turnos", href: "/admin/turnos", icon: CalendarRange },
-    { label: "Servicios", href: "/admin/servicios", icon: Wrench },
-    { label: "Horarios", href: "/admin/horarios", icon: Clock },
-    { label: "Bloqueos", href: "/admin/bloqueos", icon: Ban },
+    { label: "HOY", href: "/admin", icon: IconHome },
+    { label: "TURNOS", href: "/admin/turnos", icon: IconCalendar },
+    { label: "SERVICIOS", href: "/admin/servicios", icon: IconWrench },
+    { label: "HORARIOS", href: "/admin/horarios", icon: IconClock },
+    { label: "BLOQUEOS", href: "/admin/bloqueos", icon: IconBan },
 ];
 
 export default function BottomNav() {
@@ -17,8 +17,12 @@ export default function BottomNav() {
 
     return (
         <nav
-            className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-borde"
-            style={{ height: 64, background: "#141414" }}
+            style={{
+                position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 40,
+                display: "flex", alignItems: "center", justifyContent: "space-around",
+                height: 64, background: "#141414", borderTop: "1px solid #2a2a2a",
+                paddingBottom: "env(safe-area-inset-bottom, 8px)",
+            }}
         >
             {NAV.map(({ label, href, icon: Icon }) => {
                 const active = pathname === href;
@@ -26,18 +30,27 @@ export default function BottomNav() {
                     <Link
                         key={href}
                         href={href}
-                        className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors"
+                        style={{
+                            display: "flex", flexDirection: "column", alignItems: "center",
+                            justifyContent: "center", flex: 1, height: "100%", gap: 4,
+                            textDecoration: "none",
+                            opacity: active ? 1 : 0.35,
+                            transition: "opacity 0.15s",
+                        }}
                     >
-                        <Icon
-                            size={22}
-                            className={active ? "text-rojo" : "text-texto-muted"}
-                        />
-                        <span
-                            className={`text-[10px] font-bold uppercase tracking-wider ${active ? "text-rojo" : "text-texto-muted"
-                                }`}
-                        >
+                        <Icon size={22} className={active ? "text-[#e63946]" : "text-[#f5f5f5]"} />
+                        <span style={{
+                            fontSize: 9, fontWeight: 800, letterSpacing: 1,
+                            color: active ? "#e63946" : "#f5f5f5",
+                        }}>
                             {label}
                         </span>
+                        {active && (
+                            <div style={{
+                                width: 20, height: 2, borderRadius: 1,
+                                background: "#e63946", marginTop: -2,
+                            }} />
+                        )}
                     </Link>
                 );
             })}

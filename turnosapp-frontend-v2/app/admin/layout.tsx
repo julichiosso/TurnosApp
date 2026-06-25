@@ -2,7 +2,7 @@
 
 import BottomNav from "@/components/admin/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
+import { IconLoader } from "@/components/icons";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { loading } = useAuth();
@@ -10,7 +10,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (loading) {
         return (
             <div className="min-h-screen bg-bg flex items-center justify-center">
-                <Loader2 className="animate-spin text-rojo" size={32} />
+                <IconLoader className="text-rojo" size={32} />
             </div>
         );
     }

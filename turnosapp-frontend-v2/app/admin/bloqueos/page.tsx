@@ -1,12 +1,20 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { getBloqueos, crearBloqueo, eliminarBloqueo } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { Bloqueo } from "@/types";
 import Toast from "@/components/admin/Toast";
-import { Ban, Plus, Trash2, Loader2, AlertTriangle, X } from "lucide-react";
+import BottomSheet from "@/components/BottomSheet";
+import {
+    IconPlusCircle,
+    IconBan,
+    IconTrash,
+    IconCalendarCheck,
+    IconWarning,
+    IconX,
+    IconLoader
+} from "@/components/icons";
 
 export default function BloqueosPage() {
     const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
@@ -19,9 +27,13 @@ export default function BloqueosPage() {
 
     const load = useCallback(async () => {
         setLoading(true);
-        try { setBloqueos(await getBloqueos()); }
-        catch (e) { console.error(e); }
-        finally { setLoading(false); }
+        try {
+            setBloqueos(await getBloqueos());
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     useEffect(() => { load(); }, [load]);
@@ -36,7 +48,9 @@ export default function BloqueosPage() {
             setSheetOpen(false);
             setForm({ fecha: new Date().toISOString().split("T")[0], motivo: "" });
             load();
-        } catch { showToast("Error al bloquear"); }
+        } catch {
+            showToast("Error al bloquear");
+        }
     };
 
     const handleEliminar = async (id: number) => {
@@ -46,126 +60,164 @@ export default function BloqueosPage() {
             await eliminarBloqueo(token, id);
             setBloqueos(prev => prev.filter(b => b.id !== id));
             showToast("Bloqueo eliminado");
-        } catch { showToast("Error al eliminar"); }
+        } catch {
+            showToast("Error al eliminar");
+        }
     };
 
     return (
         <>
             <Toast message={toast} />
-            <div className="space-y-5">
-                <div className="flex items-start justify-between">
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {/* Header */}
+                <div style={{ display: "flex", alignItems: "flex-start", justifyItems: "center", justifyContent: "space-between" }}>
                     <div>
-                        <h1 className="text-2xl font-black italic uppercase tracking-tighter">
-                            Fechas <span className="text-rojo">Bloqueadas</span>
+                        <h1 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.05em", fontStyle: "italic" }}>
+                            Fechas <span style={{ color: "#e63946" }}>Bloqueadas</span>
                         </h1>
-                        <p className="text-texto-muted text-[11px] font-medium">Feriados, vacaciones, mantenimiento.</p>
+                        <p style={{ color: "#888", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>
+                            Feriados, vacaciones, mantenimiento.
+                        </p>
                     </div>
                     <button
                         onClick={() => setSheetOpen(true)}
-                        className="h-11 px-4 bg-rojo text-white rounded-2xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-rojo/25 active:scale-95 transition-all flex-shrink-0"
+                        style={{
+                            height: 44, padding: "0 16px", background: "#e63946", color: "#fff",
+                            border: "none", borderRadius: 14, fontWeight: "bold", fontSize: 14,
+                            display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
+                            boxShadow: "0 10px 15px -3px rgba(230, 57, 70, 0.25)"
+                        }}
                     >
-                        <Plus size={18} /> Bloquear
+                        <IconPlusCircle size={18} /> Bloquear
                     </button>
                 </div>
 
+                {/* List */}
                 {loading ? (
-                    <div className="py-16 flex justify-center"><Loader2 className="animate-spin text-rojo" size={28} /></div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 0" }}>
+                        <IconLoader size={28} className="text-[#e63946]" />
+                        <p style={{ color: "#888", fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", marginTop: 12 }}>Cargando...</p>
+                    </div>
                 ) : bloqueos.length > 0 ? (
-                    <div className="space-y-3">
-                        {bloqueos.map((b, i) => (
-                            <motion.div
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {bloqueos.map((b) => (
+                            <div
                                 key={b.id}
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.06 }}
-                                className="bg-surface border border-borde rounded-2xl p-4 min-h-[72px] flex items-center gap-4"
+                                style={{
+                                    background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 18,
+                                    padding: 16, display: "flex", alignItems: "center", gap: 16
+                                }}
                             >
-                                <div className="w-12 h-12 bg-surface-2 rounded-xl flex items-center justify-center border border-borde flex-shrink-0">
-                                    <Ban size={20} className="text-rojo" />
+                                <div style={{
+                                    width: 44, height: 44, background: "#141414", border: "1px solid #2a2a2a",
+                                    borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                                }}>
+                                    <IconBan size={18} className="text-[#e63946]" />
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-black uppercase italic text-base">
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{ fontSize: 15, fontWeight: 900, textTransform: "uppercase", fontStyle: "italic", color: "#f5f5f5", margin: 0 }}>
                                         {new Date(b.fecha + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}
                                     </p>
-                                    {b.motivo && <p className="text-texto-muted text-[11px] italic mt-0.5">{b.motivo}</p>}
+                                    {b.motivo && <p style={{ color: "#888", fontSize: 12, fontStyle: "italic", marginTop: 4, marginBottom: 0 }}>{b.motivo}</p>}
                                 </div>
                                 <button
                                     onClick={() => handleEliminar(b.id)}
-                                    className="w-11 h-11 flex-shrink-0 flex items-center justify-center bg-red-500/10 text-red-500 rounded-xl border border-red-500/15 active:scale-95 transition-all"
+                                    style={{
+                                        width: 40, height: 40, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center",
+                                        background: "rgba(230, 57, 70, 0.1)", border: "1px solid rgba(230, 57, 70, 0.2)",
+                                        color: "#e63946", cursor: "pointer", flexShrink: 0
+                                    }}
                                 >
-                                    <Trash2 size={18} />
+                                    <IconTrash size={18} />
                                 </button>
-                            </motion.div>
+                            </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <Ban size={52} className="text-rojo/20 mb-4" />
-                        <p className="font-black uppercase italic text-white">Sin bloqueos activos</p>
-                        <p className="text-texto-muted text-sm mt-1">Todos los días están disponibles.</p>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 20px", textAlign: "center" }}>
+                        <IconCalendarCheck size={48} className="text-[#2a2a2a]" />
+                        <p style={{ fontSize: 16, fontWeight: 800, color: "#f5f5f5", marginTop: 12 }}>Todos los días disponibles</p>
+                        <p style={{ fontSize: 13, color: "#888", marginTop: 4 }}>No hay fechas bloqueadas en este momento.</p>
                     </div>
                 )}
             </div>
 
             {/* Bottom Sheet para bloquear fecha */}
-            <AnimatePresence>
-                {sheetOpen && (
-                    <div className="fixed inset-0 z-50 flex flex-col justify-end">
-                        <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-                            onClick={() => setSheetOpen(false)}
+            <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
+                {/* Header */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 900, textTransform: "uppercase", color: "#f5f5f5" }}>
+                        Bloquear <span style={{ color: "#e63946" }}>Fecha</span>
+                    </h2>
+                    <button
+                        onClick={() => setSheetOpen(false)}
+                        style={{
+                            border: "none", background: "#1a1a1a", color: "#888",
+                            width: 36, height: 36, borderRadius: 10, display: "flex",
+                            alignItems: "center", justifyContent: "center", cursor: "pointer"
+                        }}
+                    >
+                        <IconX size={18} />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    <div>
+                        <label style={{ fontSize: 10, color: "#888", fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", display: "block", marginBottom: 6 }}>
+                            Fecha *
+                        </label>
+                        <input
+                            required
+                            type="date"
+                            value={form.fecha}
+                            onChange={e => setForm({ ...form, fecha: e.target.value })}
+                            style={{
+                                background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 10,
+                                padding: "13px 14px", color: "#f5f5f5", fontSize: 15, width: "100%",
+                                outline: "none", fontWeight: "bold", boxSizing: "border-box"
+                            }}
+                            className="focus:border-[#e63946]"
                         />
-                        <motion.div
-                            initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-                            transition={{ type: "spring", damping: 28, stiffness: 280 }}
-                            className="relative bg-[#141414] border-t border-borde rounded-t-3xl z-10 pb-10"
-                        >
-                            <div className="w-10 h-1 bg-gray-700 rounded-full mx-auto mt-4" />
-                            <div className="flex items-center justify-between px-6 py-4 border-b border-borde">
-                                <h2 className="text-lg font-black italic uppercase"><span className="text-rojo">Bloquear</span> Fecha</h2>
-                                <button onClick={() => setSheetOpen(false)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-2 text-texto-muted">
-                                    <X size={18} />
-                                </button>
-                            </div>
-                            <form onSubmit={handleSubmit} className="px-6 pt-5 space-y-4">
-                                <div>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-texto-muted block mb-1.5">Fecha *</label>
-                                    <input
-                                        required
-                                        type="date"
-                                        value={form.fecha}
-                                        onChange={e => setForm({ ...form, fecha: e.target.value })}
-                                        style={{ fontSize: "16px" }}
-                                        className="w-full h-[52px] bg-bg border border-borde rounded-2xl px-4 outline-none focus:border-rojo text-white font-bold transition-colors"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-texto-muted block mb-1.5">Motivo</label>
-                                    <input
-                                        type="text"
-                                        value={form.motivo}
-                                        onChange={e => setForm({ ...form, motivo: e.target.value })}
-                                        placeholder="Ej: Feriado puente"
-                                        style={{ fontSize: "16px" }}
-                                        className="w-full h-[52px] bg-bg border border-borde rounded-2xl px-4 outline-none focus:border-rojo text-white transition-colors"
-                                    />
-                                </div>
-                                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-3 flex gap-2.5 items-center">
-                                    <AlertTriangle size={15} className="text-yellow-500 flex-shrink-0" />
-                                    <p className="text-yellow-500/80 text-[11px]">Esta fecha no quedará disponible para los clientes.</p>
-                                </div>
-                                <button
-                                    type="submit"
-                                    className="w-full h-[52px] bg-rojo text-white rounded-2xl font-bold text-[16px] flex items-center justify-center gap-2 shadow-lg shadow-rojo/25 active:scale-[0.98] transition-all"
-                                >
-                                    <Ban size={18} /> Bloquear Ahora
-                                </button>
-                            </form>
-                        </motion.div>
                     </div>
-                )}
-            </AnimatePresence>
+                    <div>
+                        <label style={{ fontSize: 10, color: "#888", fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", display: "block", marginBottom: 6 }}>
+                            Motivo
+                        </label>
+                        <input
+                            type="text"
+                            value={form.motivo}
+                            onChange={e => setForm({ ...form, motivo: e.target.value })}
+                            placeholder="Ej: Feriado puente"
+                            style={{
+                                background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 10,
+                                padding: "13px 14px", color: "#f5f5f5", fontSize: 15, width: "100%",
+                                outline: "none", boxSizing: "border-box"
+                            }}
+                            className="focus:border-[#e63946]"
+                        />
+                    </div>
+
+                    <div style={{
+                        background: "#1a1000", border: "1px solid #f59e0b30", borderRadius: 12,
+                        padding: 12, display: "flex", gap: 10, alignItems: "center"
+                    }}>
+                        <IconWarning size={15} className="text-[#f59e0b] flex-shrink-0" />
+                        <p style={{ color: "#f59e0b", fontSize: 12, margin: 0 }}>Esta fecha no quedará disponible para los clientes.</p>
+                    </div>
+
+                    <button
+                        type="submit"
+                        style={{
+                            background: "#e63946", color: "#fff", border: "none", borderRadius: 12,
+                            padding: 15, fontWeight: 800, fontSize: 15, width: "100%", cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                            boxSizing: "border-box", marginTop: 8
+                        }}
+                    >
+                        <IconBan size={18} /> Bloquear Ahora
+                    </button>
+                </form>
+            </BottomSheet>
         </>
     );
 }

@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { IconCheck } from "@/components/icons";
 
 interface Props {
     message: string | null;
@@ -19,7 +19,7 @@ export default function Toast({ message }: Props) {
                     transition={{ duration: 0.25 }}
                     className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-green-500 text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 whitespace-nowrap"
                 >
-                    <CheckCircle2 size={16} />
+                    <IconCheck size={16} />
                     {message}
                 </motion.div>
             )}

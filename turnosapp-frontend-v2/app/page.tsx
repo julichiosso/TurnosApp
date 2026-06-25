@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HeroSection from "@/components/publico/HeroSection";
 import ServicioCard from "@/components/publico/ServicioCard";
@@ -85,14 +85,24 @@ export default function Home() {
     }
   };
 
+  const direction = useRef<1 | -1>(1);
+
   const siguientePaso = () => {
+    direction.current = 1;
     setError(null);
     setPaso(p => p + 1);
   };
 
   const volverPaso = () => {
+    direction.current = -1;
     setError(null);
     setPaso(p => p - 1);
+  };
+
+  const slideVariants = {
+    enter: { opacity: 0, x: direction.current * 40 },
+    center: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: direction.current * -40 },
   };
 
   const servicioSeleccionado = servicios.find(s => s.id === servicioId);
@@ -112,24 +122,51 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-bg text-white pb-10">
       <HeroSection />
 
-      <div className="flex-1 px-4 py-6">
-        {/* Progress Bar */}
+      <div className="flex-1 px-4 pt-4 pb-10">
+        {/* Progress Bar — linear */}
         {paso < 5 && (
-          <div className="max-w-md mx-auto mb-8 flex items-center justify-between px-2">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center flex-1 last:flex-none">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-500
-                    ${paso >= i ? "bg-rojo text-white shadow-[0_0_15px_rgba(204,0,0,0.5)]" : "bg-surface-2 text-texto-muted"}
-                  `}
-                >
-                  {i}
+          <div className="max-w-md mx-auto mb-8 px-2">
+            {/* Track + dots row */}
+            <div className="relative flex items-center justify-between">
+              {/* Background track */}
+              <div className="absolute left-0 right-0 h-[2px] bg-[#1e1e1e]" style={{ top: "5px" }} />
+              {/* Filled track */}
+              <div
+                className="absolute left-0 h-[2px] bg-[#CC0000] transition-all duration-300 ease-out"
+                style={{ top: "5px", width: `${((paso - 1) / 3) * 100}%` }}
+              />
+              {/* Dots */}
+              {[
+                { step: 1, label: "SERVICIO" },
+                { step: 2, label: "FECHA" },
+                { step: 3, label: "HORA" },
+                { step: 4, label: "DATOS" },
+              ].map(({ step, label }) => (
+                <div key={step} className="relative flex flex-col items-center gap-1.5 z-10">
+                  <div
+                    className={`w-[10px] h-[10px] rounded-full transition-all duration-300 flex items-center justify-center ${
+                      paso > step
+                        ? "bg-[#CC0000]"
+                        : paso === step
+                        ? "bg-[#CC0000]"
+                        : "bg-[#2a2a2a]"
+                    }`}
+                  >
+                    {paso > step && (
+                      <svg width="7" height="5" viewBox="0 0 7 5" fill="none">
+                        <path d="M1 2.5L2.8 4L6 1" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </div>
+                  <span
+                    className="text-[9px] font-bold tracking-wider uppercase"
+                    style={{ color: paso >= step ? "#ffffff" : "#4a4a4a" }}
+                  >
+                    {label}
+                  </span>
                 </div>
-                {i < 4 && (
-                  <div className={`flex-1 h-[2px] mx-2 ${paso > i ? "bg-rojo" : "bg-surface-2"}`}></div>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
@@ -141,12 +178,17 @@ export default function Home() {
             </div>
           )}
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" custom={direction.current}>
             {/* PASO 1: SERVICIOS */}
             {paso === 1 && (
               <motion.div
                 key="paso1"
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                style={{ overflowX: "hidden" }}
                 className="space-y-6"
               >
                 <div className="text-center">
@@ -160,7 +202,7 @@ export default function Home() {
                     <Loader2 className="w-8 h-8 text-rojo animate-spin" />
                   </div>
                 ) : (
-                  <div className="grid gap-4">
+                  <div className="grid gap-[10px]">
                     {servicios.map((s) => (
                       <ServicioCard
                         key={s.id}
@@ -197,7 +239,12 @@ export default function Home() {
             {paso === 2 && (
               <motion.div
                 key="paso2"
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                style={{ overflowX: "hidden" }}
                 className="space-y-8"
               >
                 <div className="text-center">
@@ -238,7 +285,12 @@ export default function Home() {
             {paso === 3 && (
               <motion.div
                 key="paso3"
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                style={{ overflowX: "hidden" }}
                 className="space-y-8"
               >
                 <div className="text-center">
@@ -276,7 +328,12 @@ export default function Home() {
             {paso === 4 && (
               <motion.div
                 key="paso4"
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                style={{ overflowX: "hidden" }}
                 className="space-y-6"
               >
                 <div className="text-center">

@@ -108,9 +108,13 @@ export const eliminarServicio = async (token: string, id: number) => {
 
 // Horarios Config
 export const getConfig = async (): Promise<HorarioConfig[]> => {
-    const res = await fetch(`${API_URL}/api/config`);
-    if (!res.ok) throw new Error('Error al cargar configuración');
-    return res.json();
+    try {
+        const res = await fetch(`${API_URL}/api/config`);
+        if (!res.ok) return [];
+        return res.json();
+    } catch {
+        return [];
+    }
 };
 
 export const actualizarConfig = async (token: string, configs: HorarioConfig[]) => {
@@ -125,9 +129,13 @@ export const actualizarConfig = async (token: string, configs: HorarioConfig[]) 
 
 // Bloqueos
 export const getBloqueos = async (): Promise<Bloqueo[]> => {
-    const res = await fetch(`${API_URL}/api/bloqueos`);
-    if (!res.ok) throw new Error('Error al cargar bloqueos');
-    return res.json();
+    try {
+        const res = await fetch(`${API_URL}/api/bloqueos`);
+        if (!res.ok) return [];
+        return res.json();
+    } catch {
+        return [];
+    }
 };
 
 export const crearBloqueo = async (token: string, data: any) => {

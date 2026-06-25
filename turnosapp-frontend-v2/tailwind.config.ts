@@ -18,7 +18,7 @@ const config: Config = {
                 borde: "#2A2A2A",
             },
             fontFamily: {
-                sans: ["Inter", "sans-serif"],
+                sans: ["DM Sans", "sans-serif"],
             },
         },
     },

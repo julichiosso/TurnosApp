@@ -6,10 +6,10 @@ interface Props {
 }
 
 const ESTADOS = {
-    pendiente: { label: "Pendiente", bg: "bg-yellow-500/10", text: "text-yellow-500" },
-    confirmado: { label: "Confirmado", bg: "bg-green-500/10", text: "text-green-500" },
-    cancelado: { label: "Cancelado", bg: "bg-red-500/10", text: "text-red-500" },
-    completado: { label: "Completado", bg: "bg-gray-500/10", text: "text-gray-400" },
+    pendiente:  { label: "Pendiente",  bg: "bg-[#D97706]/10", text: "text-[#D97706]" },
+    confirmado: { label: "Confirmado", bg: "bg-[#059669]/10", text: "text-[#059669]" },
+    cancelado:  { label: "Cancelado",  bg: "bg-[#DC2626]/10", text: "text-[#DC2626]" },
+    completado: { label: "Completado", bg: "bg-[#6B7280]/10", text: "text-[#6B7280]" },
 };
 
 export default function TurnoRow({ turno }: Props) {

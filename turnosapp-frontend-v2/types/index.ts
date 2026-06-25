@@ -32,6 +32,7 @@ export interface HorarioConfig {
     abierto: boolean;
     horaInicio: string;
     horaFin: string;
+    intervalo?: number;
 }
 
 // Matches backend /api/bloqueos response

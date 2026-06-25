@@ -1,30 +1,27 @@
-import Image from "next/image";
-
 export default function HeroSection() {
     return (
-        <section className="relative h-[200px] w-full flex flex-col items-center justify-center overflow-hidden bg-black">
-            {/* Overlay sutil */}
-            <div className="absolute inset-0 bg-[url('/bg-hero.jpg')] bg-cover bg-center opacity-15"></div>
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/80"></div>
+        <section className="relative w-full flex flex-col items-center justify-center overflow-hidden bg-black" style={{ height: "160px" }}>
+            {/* Background image — visible */}
+            <div className="absolute inset-0 bg-[url('/logo-taller.jpg')] bg-cover bg-center opacity-40" />
+            {/* Gradient only covers the bottom half for text legibility */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/30 to-black/80" />
 
             <div className="relative z-10 flex flex-col items-center text-center px-4">
-                {/* Placeholder para logo */}
-                <div className="w-16 h-16 bg-rojo rounded-full flex items-center justify-center mb-2 shadow-lg shadow-rojo/20">
-                    <span className="text-white font-black text-xl italic uppercase">TM</span>
+                {/* Logo TM — 48px */}
+                <div className="rounded-full flex items-center justify-center mb-2 shadow-lg shadow-red-900/30">
+                    <span className="text-white font-black text-base uppercase tracking-tight"></span>
                 </div>
 
-                <h1 className="text-white text-3xl font-extrabold tracking-tighter uppercase italic">
-                    RESERVÁ TU <span className="text-rojo">TURNO</span>
+                <h1 className="text-white font-extrabold tracking-tight uppercase leading-none" style={{ fontSize: "26px" }}>
+                    RESERVÁ TU <span className="text-[#CC0000]">TURNO</span>
                 </h1>
 
-                <div className="mt-1">
-                    <p className="text-rojo text-[10px] font-bold tracking-[0.2em] uppercase">
-                        Chapa · Pintura · Granizo · Parabrisas
-                    </p>
-                </div>
+                <p className="text-[#CC0000] mt-1 font-bold uppercase" style={{ fontSize: "12px", letterSpacing: "0.08em" }}>
+                    Chapa · Pintura · Granizo
+                </p>
 
-                <p className="text-texto-muted text-[10px] mt-1 font-medium">
-                    Av. Alberdi 739, San Jorge, Santa Fe
+                <p className="text-gray-500 mt-0.5 font-medium" style={{ fontSize: "11px" }}>
+                    Av. Alberdi 739, San Jorge
                 </p>
             </div>
         </section>

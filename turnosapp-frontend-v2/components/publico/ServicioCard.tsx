@@ -1,5 +1,6 @@
+"use client";
+
 import { Servicio } from "../../types";
-import { Clock, DollarSign } from "lucide-react";
 
 interface Props {
     servicio: Servicio;
@@ -12,39 +13,37 @@ export default function ServicioCard({ servicio, seleccionado, onSelect }: Props
         <div
             onClick={() => onSelect(servicio.id)}
             className={`
-        relative overflow-hidden p-4 rounded-xl border transition-all duration-300 cursor-pointer
-        ${seleccionado
-                    ? "bg-surface-2 border-rojo ring-1 ring-rojo"
-                    : "bg-surface border-borde hover:border-texto-muted"}
-      `}
+                relative flex items-center justify-between px-4 rounded-xl border transition-all duration-200 cursor-pointer active:opacity-80
+                ${seleccionado
+                    ? "bg-[#1A1A1A] border-l-[3px] border-[#CC0000]"
+                    : "bg-[#111] border-[#1e1e1e] hover:border-[#333]"}
+            `}
+            style={{ height: "64px" }}
         >
-            <div className="flex justify-between items-start">
-                <div>
-                    <h3 className={`font-bold text-lg ${seleccionado ? "text-white" : "text-gray-200"}`}>
-                        {servicio.nombre}
-                    </h3>
-                    <p className="text-texto-muted text-sm line-clamp-2 mt-1">
+            {/* Left: name + description */}
+            <div className="flex-1 min-w-0 pr-4">
+                <p className={`font-semibold leading-tight truncate ${seleccionado ? "text-white" : "text-gray-200"}`}
+                    style={{ fontSize: "16px" }}>
+                    {servicio.nombre}
+                </p>
+                {servicio.descripcion && (
+                    <p className="text-gray-600 truncate mt-0.5" style={{ fontSize: "12px" }}>
                         {servicio.descripcion}
                     </p>
-                </div>
-            </div>
-
-            <div className="flex items-center gap-4 mt-4">
-                <div className="flex items-center gap-1.5 text-xs text-texto-muted font-medium bg-black/30 px-2 py-1 rounded-full">
-                    <Clock size={14} className="text-rojo" />
-                    <span>{servicio.duracion} min</span>
-                </div>
-                {servicio.precio && (
-                    <div className="flex items-center gap-1 text-xs text-texto-muted font-bold">
-                        <DollarSign size={14} className="text-rojo" />
-                        <span>{servicio.precio.toLocaleString()}</span>
-                    </div>
                 )}
             </div>
 
-            {seleccionado && (
-                <div className="absolute top-2 right-2 w-2 h-2 bg-rojo rounded-full animate-pulse shadow-sm shadow-rojo"></div>
-            )}
+            {/* Right: duration + price */}
+            <div className="flex-shrink-0 text-right">
+                <p className="text-gray-500 font-medium" style={{ fontSize: "13px" }}>
+                    {servicio.duracion} min
+                </p>
+                {servicio.precio ? (
+                    <p className="text-gray-400 font-semibold" style={{ fontSize: "13px" }}>
+                        ${servicio.precio.toLocaleString()}
+                    </p>
+                ) : null}
+            </div>
         </div>
     );
 }

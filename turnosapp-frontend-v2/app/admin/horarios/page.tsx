@@ -1,141 +1,352 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
 import { getConfig, actualizarConfig } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { HorarioConfig } from "@/types";
 import Toast from "@/components/admin/Toast";
-import { Clock, Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import BottomSheet from "@/components/BottomSheet";
+import Toggle from "@/components/Toggle";
+import { IconClock, IconWarning, IconCheck, IconX, IconLoader } from "@/components/icons";
 
 const DIAS = [
-    { id: 1, name: "Lunes" }, { id: 2, name: "Martes" }, { id: 3, name: "Miércoles" },
-    { id: 4, name: "Jueves" }, { id: 5, name: "Viernes" }, { id: 6, name: "Sábado" },
-    { id: 0, name: "Domingo" },
+    { id: 1, abrev: "LUN", name: "Lunes" },
+    { id: 2, abrev: "MAR", name: "Martes" },
+    { id: 3, abrev: "MIÉ", name: "Miércoles" },
+    { id: 4, abrev: "JUE", name: "Jueves" },
+    { id: 5, abrev: "VIE", name: "Viernes" },
+    { id: 6, abrev: "SÁB", name: "Sábado" },
+    { id: 0, abrev: "DOM", name: "Domingo" },
 ];
 
-export default function HorariosPage() {
-    const [configs, setConfigs] = useState<HorarioConfig[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [toast, setToast] = useState<string | null>(null);
+const INTERVALOS = [15, 20, 30, 45, 60];
 
-    const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2000); };
+interface DayBottomSheetProps {
+    dia: typeof DIAS[0] | null;
+    config: HorarioConfig | null;
+    onClose: () => void;
+    onSave: (diaId: number, data: Partial<HorarioConfig>) => Promise<void>;
+}
+
+function DayBottomSheet({ dia, config, onClose, onSave }: DayBottomSheetProps) {
+    const [horaInicio, setHoraInicio] = useState("09:00");
+    const [horaFin, setHoraFin] = useState("18:00");
+    const [intervalo, setIntervalo] = useState(30);
+    const [error, setError] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        getConfig().then(setConfigs).catch(console.error).finally(() => setLoading(false));
-    }, []);
+        if (config) {
+            setHoraInicio(config.horaInicio || "09:00");
+            setHoraFin(config.horaFin || "18:00");
+            setIntervalo((config as any).intervalo || 30);
+        }
+        setError(null);
+    }, [config, dia]);
 
-    const handleChange = (dia: number, field: string, value: any) => {
-        setConfigs(prev => prev.map(c => c.diaSemana === dia ? { ...c, [field]: value } : c));
-    };
+    if (!dia) return null;
 
-    const getConfigForDia = (id: number): HorarioConfig =>
-        configs.find(c => c.diaSemana === id) || { diaSemana: id, abierto: false, horaInicio: "08:00", horaFin: "18:00" };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const token = getToken();
-        if (!token) return;
+    const handleSave = async () => {
+        if (horaFin <= horaInicio) {
+            setError("La hora de fin debe ser mayor a la hora de inicio.");
+            return;
+        }
         setSaving(true);
         try {
-            await actualizarConfig(token, configs);
-            showToast("Horarios guardados");
+            await onSave(dia.id, { horaInicio, horaFin, abierto: true, intervalo });
+            onClose();
         } catch {
-            showToast("Error al guardar");
+            setError("Error al guardar. Reintentá.");
         } finally {
             setSaving(false);
         }
     };
 
     return (
+        <BottomSheet open={!!dia} onClose={onClose}>
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 900, textTransform: "uppercase", color: "#f5f5f5" }}>
+                    Configurar <span style={{ color: "#e63946" }}>{dia.name}</span>
+                </h2>
+                <button
+                    onClick={onClose}
+                    style={{
+                        border: "none", background: "#1a1a1a", color: "#888",
+                        width: 36, height: 36, borderRadius: 10, display: "flex",
+                        alignItems: "center", justifyContent: "center", cursor: "pointer"
+                    }}
+                >
+                    <IconX size={18} />
+                </button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Time inputs */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div>
+                        <label style={{ fontSize: 10, color: "#888", fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", display: "block", marginBottom: 6 }}>
+                            Hora inicio
+                        </label>
+                        <div style={{
+                            display: "flex", alignItems: "center", gap: 8, background: "#1a1a1a",
+                            border: "1px solid #2a2a2a", borderRadius: 10, padding: "8px 12px"
+                        }}>
+                            <IconClock size={16} className="text-[#e63946]" />
+                            <input
+                                type="time"
+                                value={horaInicio}
+                                onChange={e => { setHoraInicio(e.target.value); setError(null); }}
+                                style={{
+                                    background: "transparent", border: "none", color: "#fff",
+                                    fontWeight: "bold", fontSize: 15, outline: "none", width: "100%"
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label style={{ fontSize: 10, color: "#888", fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", display: "block", marginBottom: 6 }}>
+                            Hora fin
+                        </label>
+                        <div style={{
+                            display: "flex", alignItems: "center", gap: 8, background: "#1a1a1a",
+                            border: error ? "1px solid #e63946" : "1px solid #2a2a2a", borderRadius: 10, padding: "8px 12px"
+                        }}>
+                            <IconClock size={16} className="text-[#e63946]" />
+                            <input
+                                type="time"
+                                value={horaFin}
+                                onChange={e => { setHoraFin(e.target.value); setError(null); }}
+                                style={{
+                                    background: "transparent", border: "none", color: "#fff",
+                                    fontWeight: "bold", fontSize: 15, outline: "none", width: "100%"
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Error inline */}
+                {error && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#e63946", fontSize: 13, fontWeight: "bold" }}>
+                        <IconWarning size={14} />
+                        <span>{error}</span>
+                    </div>
+                )}
+
+                {/* Intervalo chips */}
+                <div>
+                    <label style={{ fontSize: 10, color: "#888", fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", display: "block", marginBottom: 8 }}>
+                        Intervalo entre turnos
+                    </label>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {INTERVALOS.map(min => {
+                            const active = intervalo === min;
+                            return (
+                                <button
+                                    key={min}
+                                    type="button"
+                                    onClick={() => setIntervalo(min)}
+                                    style={{
+                                        padding: "8px 14px", height: 38, borderRadius: 10, fontSize: 13,
+                                        fontWeight: "bold", border: active ? "1px solid #e63946" : "1px solid #2a2a2a",
+                                        background: active ? "#2a000a" : "#1a1a1a",
+                                        color: active ? "#e63946" : "#888", cursor: "pointer",
+                                        transition: "all 0.15s"
+                                    }}
+                                >
+                                    {min} min
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Save button */}
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    style={{
+                        background: "#e63946", color: "#fff", border: "none", borderRadius: 12,
+                        padding: 15, fontWeight: 800, fontSize: 15, width: "100%", cursor: "pointer",
+                        display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center", gap: 8,
+                        opacity: saving ? 0.7 : 1, marginTop: 8
+                    }}
+                >
+                    {saving ? <IconLoader size={18} /> : "Guardar"}
+                </button>
+            </div>
+        </BottomSheet>
+    );
+}
+
+export default function HorariosPage() {
+    const [configs, setConfigs] = useState<HorarioConfig[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [toast, setToast] = useState<string | null>(null);
+    const [sheetDia, setSheetDia] = useState<typeof DIAS[0] | null>(null);
+    const [savedDays, setSavedDays] = useState<number[]>([]);
+
+    const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500); };
+
+    useEffect(() => {
+        getConfig().then(setConfigs).catch(console.error).finally(() => setLoading(false));
+    }, []);
+
+    const getConfigForDia = (id: number): HorarioConfig =>
+        configs.find(c => c.diaSemana === id) || { diaSemana: id, abierto: false, horaInicio: "09:00", horaFin: "18:00" };
+
+    const handleToggle = (diaItem: typeof DIAS[0]) => {
+        const cfg = getConfigForDia(diaItem.id);
+        if (!cfg.abierto) {
+            setSheetDia(diaItem);
+        } else {
+            const updated = configs.map(c =>
+                c.diaSemana === diaItem.id ? { ...c, abierto: false } : c
+            );
+            const exists = configs.find(c => c.diaSemana === diaItem.id);
+            if (!exists) {
+                setConfigs([...configs, { diaSemana: diaItem.id, abierto: false, horaInicio: "09:00", horaFin: "18:00" }]);
+            } else {
+                setConfigs(updated);
+            }
+            handleSaveSilent(diaItem.id, { abierto: false });
+        }
+    };
+
+    const handleSaveSilent = async (diaId: number, partial: Partial<HorarioConfig>) => {
+        const token = getToken();
+        if (!token) return;
+        const cfg = getConfigForDia(diaId);
+        const updated = { ...cfg, ...partial };
+        const newConfigs = configs.some(c => c.diaSemana === diaId)
+            ? configs.map(c => c.diaSemana === diaId ? updated : c)
+            : [...configs, updated];
+        try {
+            await actualizarConfig(token, newConfigs);
+        } catch { /* silent */ }
+    };
+
+    const handleSaveDay = async (diaId: number, data: Partial<HorarioConfig>) => {
+        const token = getToken();
+        if (!token) return;
+        const cfg = getConfigForDia(diaId);
+        const updated = { ...cfg, ...data, abierto: true };
+        const newConfigs = configs.some(c => c.diaSemana === diaId)
+            ? configs.map(c => c.diaSemana === diaId ? updated : c)
+            : [...configs, updated];
+        setConfigs(newConfigs);
+        await actualizarConfig(token, newConfigs);
+        showToast("Horario guardado");
+        setSavedDays(prev => [...prev, diaId]);
+        setTimeout(() => setSavedDays(prev => prev.filter(d => d !== diaId)), 2000);
+    };
+
+    const openEdit = (diaItem: typeof DIAS[0]) => {
+        const cfg = getConfigForDia(diaItem.id);
+        if (cfg.abierto) setSheetDia(diaItem);
+    };
+
+    return (
         <>
             <Toast message={toast} />
-            <div className="space-y-5">
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {/* Header */}
                 <div>
-                    <h1 className="text-2xl font-black italic uppercase tracking-tighter">
-                        Horarios <span className="text-rojo">Laborales</span>
+                    <h1 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.05em", fontStyle: "italic" }}>
+                        Horarios <span style={{ color: "#e63946" }}>Laborales</span>
                     </h1>
-                    <p className="text-texto-muted text-[11px] font-medium">Definí tu disponibilidad semanal.</p>
+                    <p style={{ color: "#888", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>
+                        Tocá un día activo para editar sus horarios.
+                    </p>
                 </div>
 
                 {loading ? (
-                    <div className="py-16 flex justify-center"><Loader2 className="animate-spin text-rojo" size={28} /></div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 0" }}>
+                        <IconLoader size={28} className="text-[#e63946]" />
+                        <p style={{ color: "#888", fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", marginTop: 12 }}>Cargando...</p>
+                    </div>
                 ) : (
-                    <form onSubmit={handleSubmit} className="space-y-2">
-                        {DIAS.map((d, i) => {
-                            const cfg = getConfigForDia(d.id);
-                            return (
-                                <motion.div
-                                    key={d.id}
-                                    initial={{ opacity: 0, y: 6 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    className="bg-surface border border-borde rounded-2xl"
-                                >
-                                    {/* Toggle row */}
-                                    <div className="flex items-center justify-between px-4 py-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${cfg.abierto ? "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]" : "bg-gray-700"}`} />
-                                            <span className="font-black uppercase italic text-base">{d.name}</span>
-                                        </div>
-                                        {/* Toggle */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleChange(d.id, "abierto", !cfg.abierto)}
-                                            className={`w-14 h-7 rounded-full relative transition-colors duration-300 ${cfg.abierto ? "bg-rojo" : "bg-gray-800"}`}
-                                        >
-                                            <span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-all ${cfg.abierto ? "right-1" : "left-1"}`} />
-                                        </button>
-                                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                        {DIAS.map((diaItem, i) => {
+                            const cfg = getConfigForDia(diaItem.id);
+                            const isOpen = cfg.abierto;
+                            const wasSaved = savedDays.includes(diaItem.id);
+                            const isLast = i === DIAS.length - 1;
 
-                                    {/* Time inputs */}
-                                    {cfg.abierto && (
-                                        <div className="flex items-center gap-3 px-4 pb-4">
-                                            <div className="flex items-center gap-2 flex-1 bg-bg border border-borde rounded-xl px-3 py-2">
-                                                <Clock size={14} className="text-rojo flex-shrink-0" />
-                                                <input
-                                                    type="time"
-                                                    value={cfg.horaInicio}
-                                                    onChange={e => handleChange(d.id, "horaInicio", e.target.value)}
-                                                    style={{ fontSize: "16px" }}
-                                                    className="bg-transparent text-white font-bold outline-none flex-1"
-                                                />
-                                            </div>
-                                            <span className="text-texto-muted font-black">—</span>
-                                            <div className="flex items-center gap-2 flex-1 bg-bg border border-borde rounded-xl px-3 py-2">
-                                                <input
-                                                    type="time"
-                                                    value={cfg.horaFin}
-                                                    onChange={e => handleChange(d.id, "horaFin", e.target.value)}
-                                                    style={{ fontSize: "16px" }}
-                                                    className="bg-transparent text-white font-bold outline-none flex-1"
-                                                />
+                            return (
+                                <div
+                                    key={diaItem.id}
+                                    style={{
+                                        gridColumn: isLast ? "span 2" : "auto",
+                                        justifySelf: isLast ? "center" : "stretch",
+                                        width: isLast ? "calc(50% - 6px)" : "auto",
+                                    }}
+                                >
+                                    <div
+                                        onClick={() => isOpen ? openEdit(diaItem) : undefined}
+                                        style={{
+                                            background: isOpen ? "#1a1a1a" : "#0d0d0d",
+                                            border: isOpen ? "1px solid #e6394650" : "1px solid #2a2a2a",
+                                            borderRadius: 18, transition: "all 0.2s", overflow: "hidden",
+                                            cursor: isOpen ? "pointer" : "default", opacity: isOpen ? 1 : 0.6
+                                        }}
+                                    >
+                                        {/* Header row */}
+                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px 8px" }}>
+                                            <span style={{ fontSize: 13, fontWeight: "bold", textTransform: "uppercase", color: isOpen ? "#fff" : "#555" }}>
+                                                {diaItem.abrev}
+                                            </span>
+                                            <div onClick={(e) => { e.stopPropagation(); handleToggle(diaItem); }}>
+                                                <Toggle active={isOpen} onChange={() => {}} />
                                             </div>
                                         </div>
-                                    )}
-                                </motion.div>
+
+                                        {/* Time / status */}
+                                        <div style={{ padding: "0 14px 12px", minHeight: 24, display: "flex", alignItems: "center" }}>
+                                            {isOpen ? (
+                                                wasSaved ? (
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#22c55e", fontSize: 12, fontWeight: "bold" }}>
+                                                        <IconCheck size={14} />
+                                                        <span>Guardado</span>
+                                                    </div>
+                                                ) : (
+                                                    <p style={{ fontSize: 12, color: "#888", fontWeight: "medium", display: "flex", alignItems: "center", gap: 4, margin: 0 }}>
+                                                        <IconClock size={11} className="text-[#e63946]" />
+                                                        {cfg.horaInicio} - {cfg.horaFin}
+                                                    </p>
+                                                )
+                                            ) : (
+                                                <p style={{ fontSize: 12, color: "#444", fontWeight: "medium", margin: 0 }}>No disponible</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             );
                         })}
-
-                        {/* Warning */}
-                        <div className="bg-rojo/5 border border-rojo/15 rounded-2xl p-4 flex gap-3 items-start mt-4">
-                            <AlertCircle className="text-rojo flex-shrink-0 mt-0.5" size={16} />
-                            <p className="text-texto-muted text-[12px] leading-relaxed">
-                                Los cambios afectan la disponibilidad en tiempo real. Turnos ya agendados no serán cancelados automáticamente.
-                            </p>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={saving}
-                            className="w-full h-[52px] bg-rojo text-white rounded-2xl font-bold text-[16px] flex items-center justify-center gap-2 shadow-lg shadow-rojo/25 active:scale-[0.98] transition-all disabled:opacity-60"
-                        >
-                            {saving ? <Loader2 className="animate-spin" size={20} /> : <><Save size={20} /> Guardar Configuración</>}
-                        </button>
-                    </form>
+                    </div>
                 )}
+
+                {/* Info note - Rule 9 */}
+                <div style={{
+                    background: "#1a1000", border: "1px solid #f59e0b30", borderRadius: 12,
+                    padding: 16, display: "flex", gap: 12, alignItems: "flex-start"
+                }}>
+                    <IconWarning className="text-[#f59e0b] mt-0.5" size={16} />
+                    <p style={{ fontSize: 12, color: "#f59e0b", lineHeight: 1.6, margin: 0 }}>
+                        Los cambios afectan la disponibilidad en tiempo real. Los turnos ya agendados no se cancelan automáticamente.
+                    </p>
+                </div>
             </div>
+
+            {sheetDia && (
+                <DayBottomSheet
+                    dia={sheetDia}
+                    config={getConfigForDia(sheetDia.id)}
+                    onClose={() => setSheetDia(null)}
+                    onSave={handleSaveDay}
+                />
+            )}
         </>
     );
 }

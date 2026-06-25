@@ -1,63 +1,81 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Turno } from "../../types";
-import { Phone, Wrench } from "lucide-react";
+import { Turno } from "@/types";
+import { IconGear, IconPhone, IconClockSmall } from "@/components/icons";
 
 interface Props {
     turno: Turno;
-    index: number;
-    onStatusPress: (turno: Turno) => void;
+    onStatusPress?: (turno: Turno) => void;
+    compact?: boolean;
 }
 
-const ESTADO_META: Record<string, { label: string; bg: string; text: string }> = {
-    pendiente: { label: "Pendiente", bg: "bg-yellow-500/15", text: "text-yellow-400" },
-    confirmado: { label: "Confirmado", bg: "bg-green-500/15", text: "text-green-400" },
-    cancelado: { label: "Cancelado", bg: "bg-red-500/15", text: "text-red-400" },
-    completado: { label: "Completado", bg: "bg-gray-500/15", text: "text-gray-400" },
+const ESTADO_STYLE: Record<string, { bg: string; color: string; label: string }> = {
+    pendiente:  { bg: "#f59e0b18", color: "#f59e0b", label: "PENDIENTE" },
+    confirmado: { bg: "#22c55e18", color: "#22c55e", label: "CONFIRMADO" },
+    cancelado:  { bg: "#e6394618", color: "#e63946", label: "CANCELADO" },
+    completado: { bg: "#88888818", color: "#888888", label: "COMPLETADO" },
 };
 
-export default function TurnoCard({ turno, index, onStatusPress }: Props) {
-    const meta = ESTADO_META[turno.estado] ?? ESTADO_META.pendiente;
+export default function TurnoCard({ turno, onStatusPress, compact }: Props) {
+    const est = ESTADO_STYLE[turno.estado] ?? ESTADO_STYLE.pendiente;
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.08, duration: 0.25 }}
-            className="bg-surface border border-borde rounded-2xl p-4 min-h-[80px] flex gap-4 items-center shadow-sm"
-        >
-            {/* Hora */}
-            <div className="flex-shrink-0 w-16 h-16 bg-[#0A0A0A] border border-borde rounded-xl flex flex-col items-center justify-center">
-                <span className="text-[9px] font-black text-rojo uppercase tracking-wider">HORA</span>
-                <span className="text-xl font-black text-white leading-none mt-0.5">{turno.hora}</span>
+        <div style={{
+            display: "flex", alignItems: "center", gap: 14,
+            background: "#1a1a1a", border: "1px solid #2a2a2a",
+            borderRadius: 14, padding: compact ? "10px 14px" : "14px 16px",
+        }}>
+            {/* Hora block */}
+            <div style={{
+                minWidth: 64, background: "#141414", borderLeft: "3px solid #e63946",
+                borderRadius: 10, padding: "10px 12px", textAlign: "center", flexShrink: 0,
+            }}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: "#888", letterSpacing: 1, textTransform: "uppercase" }}>
+                    HORA
+                </div>
+                <div style={{ fontSize: compact ? 18 : 22, fontWeight: 800, color: "#f5f5f5", lineHeight: 1.1, marginTop: 2 }}>
+                    {turno.hora}
+                </div>
             </div>
 
             {/* Info */}
-            <div className="flex-1 min-w-0">
-                <p className="text-base font-black uppercase italic truncate">{turno.nombreCliente}</p>
-                <p className="text-[11px] text-texto-muted font-medium mt-0.5 flex items-center gap-1.5">
-                    <Wrench size={11} className="text-rojo" />
-                    {turno.servicio?.nombre} · {turno.servicio?.duracion} min
-                </p>
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                    fontSize: 15, fontWeight: 800, color: "#f5f5f5",
+                    textTransform: "uppercase", whiteSpace: "nowrap",
+                    overflow: "hidden", textOverflow: "ellipsis",
+                }}>
+                    {turno.nombreCliente}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4, fontSize: 12, color: "#e63946" }}>
+                    <IconGear size={13} className="text-[#e63946]" />
+                    <span>{turno.servicio?.nombre}</span>
+                    <span style={{ color: "#555", margin: "0 2px" }}>·</span>
+                    <IconClockSmall size={12} className="text-[#e63946]" />
+                    <span>{turno.servicio?.duracion} min</span>
+                </div>
                 {turno.telefonoCliente && (
-                    <p className="text-[11px] text-texto-muted flex items-center gap-1.5 mt-0.5">
-                        <Phone size={11} className="text-rojo" />
-                        {turno.telefonoCliente}
-                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3, fontSize: 12, color: "#888" }}>
+                        <IconPhone size={13} className="text-[#888]" />
+                        <span>{turno.telefonoCliente}</span>
+                    </div>
                 )}
             </div>
 
-            {/* Badge touchable */}
+            {/* Status badge */}
             <button
-                onClick={() => onStatusPress(turno)}
-                className={`
-          flex-shrink-0 min-h-[44px] px-3 rounded-xl flex items-center justify-center font-black text-[11px] uppercase tracking-widest border border-transparent transition-all active:scale-95
-          ${meta.bg} ${meta.text}
-        `}
+                onClick={() => onStatusPress?.(turno)}
+                style={{
+                    background: est.bg, color: est.color,
+                    border: "none", borderRadius: 8,
+                    padding: "6px 10px", fontSize: 11, fontWeight: 700,
+                    fontFamily: "monospace", letterSpacing: 1,
+                    cursor: onStatusPress ? "pointer" : "default",
+                    flexShrink: 0, lineHeight: 1.2,
+                }}
             >
-                {meta.label}
+                {est.label}
             </button>
-        </motion.div>
+        </div>
     );
 }

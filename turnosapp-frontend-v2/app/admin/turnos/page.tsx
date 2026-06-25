@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { getTurnos, updateEstadoTurno } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { Turno } from "@/types";
 import TurnoCard from "@/components/admin/TurnoCard";
 import StatusBottomSheet from "@/components/admin/StatusBottomSheet";
-import Toast from "@/components/admin/Toast";
-import { Calendar, Loader2, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { IconCalendar, IconChevronLeft, IconChevronRight, IconCalendarX, IconLoader } from "@/components/icons";
 
 const PAGE_SIZE = 8;
 
@@ -18,12 +16,6 @@ export default function TurnosPage() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [selectedTurno, setSelectedTurno] = useState<Turno | null>(null);
-    const [toast, setToast] = useState<string | null>(null);
-
-    const showToast = (msg: string) => {
-        setToast(msg);
-        setTimeout(() => setToast(null), 2000);
-    };
 
     const load = useCallback(async () => {
         const token = getToken();
@@ -46,7 +38,6 @@ export default function TurnosPage() {
         setTurnos(prev =>
             prev.map(t => t.id === id ? { ...t, estado: estado as Turno["estado"] } : t)
         );
-        showToast("Estado actualizado");
         try {
             const token = getToken();
             if (token) await updateEstadoTurno(token, id, estado);
@@ -65,92 +56,111 @@ export default function TurnosPage() {
     const paged = turnos.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
     return (
-        <>
-            <Toast message={toast} />
-            <div className="space-y-5">
-                {/* Header + Date Nav */}
-                <div>
-                    <h1 className="text-2xl font-black italic uppercase tracking-tighter">
-                        Agenda <span className="text-rojo">del Día</span>
-                    </h1>
-                    {/* Date picker row */}
-                    <div className="flex items-center gap-2 mt-3 bg-surface border border-borde p-1 rounded-2xl">
-                        <button onClick={() => cambiarDia(-1)} className="p-2.5 hover:bg-surface-2 rounded-xl text-texto-muted transition-colors">
-                            <ChevronLeft size={20} />
-                        </button>
-                        <div className="flex-1 relative">
-                            <CalendarDays className="absolute left-2 top-1/2 -translate-y-1/2 text-rojo" size={15} />
-                            <input
-                                type="date"
-                                value={fecha}
-                                onChange={e => setFecha(e.target.value)}
-                                style={{ fontSize: "16px" }}
-                                className="w-full bg-transparent text-white font-bold h-10 pl-8 outline-none"
-                            />
-                        </div>
-                        <button onClick={() => cambiarDia(1)} className="p-2.5 hover:bg-surface-2 rounded-xl text-texto-muted transition-colors">
-                            <ChevronRight size={20} />
-                        </button>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Header + Date Nav */}
+            <div>
+                <h1 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.05em", fontStyle: "italic" }}>
+                    Agenda <span style={{ color: "#e63946" }}>del Día</span>
+                </h1>
+                {/* Date picker row */}
+                <div style={{
+                    display: "flex", alignItems: "center", gap: 8, marginTop: 12,
+                    background: "#141414", border: "1px solid #2a2a2a", padding: 6, borderRadius: 18
+                }}>
+                    <button
+                        onClick={() => cambiarDia(-1)}
+                        style={{
+                            border: "none", background: "transparent", color: "#888",
+                            width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center",
+                            cursor: "pointer", borderRadius: 12
+                        }}
+                    >
+                        <IconChevronLeft size={20} />
+                    </button>
+                    <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center" }}>
+                        <IconCalendar size={16} className="text-[#e63946]" style={{ position: "absolute", left: 12 }} />
+                        <input
+                            type="date"
+                            value={fecha}
+                            onChange={e => setFecha(e.target.value)}
+                            style={{
+                                width: "100%", height: 40, background: "transparent", border: "none",
+                                color: "#fff", fontWeight: "bold", fontSize: 16, outline: "none",
+                                paddingLeft: 38, cursor: "pointer"
+                            }}
+                        />
                     </div>
+                    <button
+                        onClick={() => cambiarDia(1)}
+                        style={{
+                            border: "none", background: "transparent", color: "#888",
+                            width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center",
+                            cursor: "pointer", borderRadius: 12
+                        }}
+                    >
+                        <IconChevronRight size={20} />
+                    </button>
                 </div>
-
-                {/* List */}
-                {loading ? (
-                    <div className="py-20 flex justify-center">
-                        <Loader2 className="animate-spin text-rojo" size={32} />
-                    </div>
-                ) : turnos.length > 0 ? (
-                    <>
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={`${fecha}-${page}`}
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0 }}
-                                className="space-y-3"
-                            >
-                                {paged.map((t, i) => (
-                                    <TurnoCard
-                                        key={t.id}
-                                        turno={t}
-                                        index={i}
-                                        onStatusPress={setSelectedTurno}
-                                    />
-                                ))}
-                            </motion.div>
-                        </AnimatePresence>
-
-                        {/* Pagination */}
-                        {totalPages > 1 && (
-                            <div className="flex items-center justify-between gap-3 pt-2">
-                                <button
-                                    onClick={() => setPage(p => Math.max(0, p - 1))}
-                                    disabled={page === 0}
-                                    className="flex-1 h-12 rounded-2xl border border-borde font-bold text-sm text-texto-muted disabled:opacity-30 flex items-center justify-center gap-2 active:scale-95 transition-all"
-                                >
-                                    <ChevronLeft size={18} /> Anterior
-                                </button>
-                                <span className="text-texto-muted text-xs font-bold whitespace-nowrap">
-                                    {page + 1} / {totalPages}
-                                </span>
-                                <button
-                                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                                    disabled={page === totalPages - 1}
-                                    className="flex-1 h-12 rounded-2xl border border-borde font-bold text-sm text-texto-muted disabled:opacity-30 flex items-center justify-center gap-2 active:scale-95 transition-all"
-                                >
-                                    Siguiente <ChevronRight size={18} />
-                                </button>
-                            </div>
-                        )}
-                    </>
-                ) : (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <Calendar size={56} className="text-rojo/20 mb-4" />
-                        <p className="font-black uppercase italic text-white text-lg">Agenda vacía</p>
-                        <p className="text-texto-muted text-sm mt-1">No hay turnos para este día.</p>
-                    </div>
-                )}
             </div>
+
+            {/* List */}
+            {loading ? (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 40 }}>
+                    <IconLoader size={28} className="text-[#e63946]" />
+                    <p style={{ color: "#888", fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", marginTop: 12 }}>Cargando...</p>
+                </div>
+            ) : turnos.length > 0 ? (
+                <>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {paged.map((t) => (
+                            <TurnoCard
+                                key={t.id}
+                                turno={t}
+                                onStatusPress={setSelectedTurno}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "between", gap: 12, paddingTop: 8 }}>
+                            <button
+                                onClick={() => setPage(p => Math.max(0, p - 1))}
+                                disabled={page === 0}
+                                style={{
+                                    flex: 1, height: 44, borderRadius: 14, background: "#1a1a1a",
+                                    border: "1px solid #2a2a2a", color: "#888", fontWeight: "bold", fontSize: 14,
+                                    cursor: page === 0 ? "not-allowed" : "pointer", opacity: page === 0 ? 0.35 : 1,
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6
+                                }}
+                            >
+                                <IconChevronLeft size={16} /> Anterior
+                            </button>
+                            <span style={{ fontSize: 13, fontWeight: "bold", color: "#888", whiteSpace: "nowrap" }}>
+                                {page + 1} / {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                disabled={page === totalPages - 1}
+                                style={{
+                                    flex: 1, height: 44, borderRadius: 14, background: "#1a1a1a",
+                                    border: "1px solid #2a2a2a", color: "#888", fontWeight: "bold", fontSize: 14,
+                                    cursor: page === totalPages - 1 ? "not-allowed" : "pointer", opacity: page === totalPages - 1 ? 0.35 : 1,
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6
+                                }}
+                            >
+                                Siguiente <IconChevronRight size={16} />
+                            </button>
+                        </div>
+                    )}
+                </>
+            ) : (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "64px 20px", textAlign: "center" }}>
+                    <IconCalendarX size={48} className="text-[#2a2a2a]" />
+                    <p style={{ fontSize: 16, fontWeight: 800, color: "#f5f5f5", marginTop: 12 }}>Sin turnos este día</p>
+                    <p style={{ fontSize: 13, color: "#888", marginTop: 4 }}>Navegá a otra fecha o cargá uno nuevo.</p>
+                </div>
+            )}
 
             {selectedTurno && (
                 <StatusBottomSheet
@@ -159,6 +169,6 @@ export default function TurnosPage() {
                     onChangeEstado={handleChangeEstado}
                 />
             )}
-        </>
+        </div>
     );
 }
