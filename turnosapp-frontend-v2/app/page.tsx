@@ -44,7 +44,7 @@ export default function Home() {
         const data = await getServicios();
         setServicios(data.filter(s => s.activo));
       } catch (error) {
-        setError("No se pudieron cargar los servicios. Reintentá base de datos.");
+        setError("No se pudieron cargar los servicios. Reintentá reconectar base de datos.");
       } finally {
         setLoadingServicios(false);
       }
