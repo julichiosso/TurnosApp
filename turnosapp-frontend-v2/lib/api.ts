@@ -77,7 +77,7 @@ export const updateEstadoTurno = async (token: string, id: number, estado: strin
     return res.json();
 };
 
-// Servicios CRUD
+
 export const crearServicio = async (token: string, data: any) => {
     const res = await fetch(`${API_URL}/api/servicios`, {
         method: 'POST',
