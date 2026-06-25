@@ -32,7 +32,7 @@ export const crearTurnoPublico = async (data: any): Promise<Turno> => {
     return result;
 };
 
-// --- AUTENTICACIÓN ---
+
 
 export const login = async (credentials: any) => {
     const res = await fetch(`${API_URL}/api/auth/login`, {
