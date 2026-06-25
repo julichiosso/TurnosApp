@@ -1,5 +1,8 @@
 {
   "name": "turnosapp-backend",
+  "prisma": {
+    "seed": "ts-node src/utils/seed.ts"
+  },
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
