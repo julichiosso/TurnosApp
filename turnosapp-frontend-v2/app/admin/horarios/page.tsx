@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { getConfig, actualizarConfig } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { getHorarios, actualizarHorario } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { HorarioConfig } from "@/types";
 import Toast from "@/components/admin/Toast";
@@ -20,6 +20,14 @@ const DIAS = [
 ];
 
 const INTERVALOS = [15, 20, 30, 45, 60];
+
+function mensajeError(err: any): string {
+    const status = err?.status;
+    if (!status || err.message === "Failed to fetch") return "Sin conexión. Verificá tu red.";
+    if (status === 401 || status === 403) return "Sesión expirada. Volvé a iniciar sesión.";
+    if (status === 400) return "Datos inválidos. Revisá los horarios ingresados.";
+    return `Error del servidor (${status}). Reintentá en un momento.`;
+}
 
 interface DayBottomSheetProps {
     dia: typeof DIAS[0] | null;
@@ -52,11 +60,13 @@ function DayBottomSheet({ dia, config, onClose, onSave }: DayBottomSheetProps) {
             return;
         }
         setSaving(true);
+        setError(null);
         try {
             await onSave(dia.id, { horaInicio, horaFin, abierto: true, intervalo });
             onClose();
-        } catch {
-            setError("Error al guardar. Reintentá.");
+        } catch (err: any) {
+            console.error("[Horarios] Error al guardar:", err);
+            setError(mensajeError(err));
         } finally {
             setSaving(false);
         }
@@ -110,7 +120,8 @@ function DayBottomSheet({ dia, config, onClose, onSave }: DayBottomSheetProps) {
                         </label>
                         <div style={{
                             display: "flex", alignItems: "center", gap: 8, background: "#1a1a1a",
-                            border: error ? "1px solid #e63946" : "1px solid #2a2a2a", borderRadius: 10, padding: "8px 12px"
+                            border: error && error.includes("fin") ? "1px solid #e63946" : "1px solid #2a2a2a",
+                            borderRadius: 10, padding: "8px 12px"
                         }}>
                             <IconClock size={16} className="text-[#e63946]" />
                             <input
@@ -190,53 +201,60 @@ export default function HorariosPage() {
     const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500); };
 
     useEffect(() => {
-        getConfig().then(setConfigs).catch(console.error).finally(() => setLoading(false));
+        const token = getToken();
+        if (!token) return;
+        getHorarios(token)
+            .then(setConfigs)
+            .catch(console.error)
+            .finally(() => setLoading(false));
     }, []);
 
     const getConfigForDia = (id: number): HorarioConfig =>
-        configs.find(c => c.diaSemana === id) || { diaSemana: id, abierto: false, horaInicio: "09:00", horaFin: "18:00" };
+        configs.find(c => c.diaSemana === id) || { diaSemana: id, abierto: false, activo: false, horaInicio: "09:00", horaFin: "18:00" };
 
-    const handleToggle = (diaItem: typeof DIAS[0]) => {
+    const handleToggle = async (diaItem: typeof DIAS[0]) => {
         const cfg = getConfigForDia(diaItem.id);
-        if (!cfg.abierto) {
+        const nuevoActivo = !cfg.abierto;
+        // Actualizar estado local optimistamente
+        const newConfigs = configs.some(c => c.diaSemana === diaItem.id)
+            ? configs.map(c => c.diaSemana === diaItem.id ? { ...c, abierto: nuevoActivo, activo: nuevoActivo } : c)
+            : [...configs, { ...cfg, abierto: nuevoActivo, activo: nuevoActivo }];
+        setConfigs(newConfigs);
+
+        if (nuevoActivo) {
+            // Si se activa, abrir sheet para configurar horario
             setSheetDia(diaItem);
         } else {
-            const updated = configs.map(c =>
-                c.diaSemana === diaItem.id ? { ...c, abierto: false } : c
-            );
-            const exists = configs.find(c => c.diaSemana === diaItem.id);
-            if (!exists) {
-                setConfigs([...configs, { diaSemana: diaItem.id, abierto: false, horaInicio: "09:00", horaFin: "18:00" }]);
-            } else {
-                setConfigs(updated);
+            // Si se desactiva, guardar silenciosamente
+            const token = getToken();
+            if (!token) return;
+            try {
+                await actualizarHorario(token, diaItem.id, { ...cfg, abierto: false });
+            } catch (err) {
+                console.error("[Horarios] Error al desactivar día:", err);
+                // Revertir en caso de error
+                setConfigs(configs);
+                showToast("No se pudo desactivar. Reintentá.");
             }
-            handleSaveSilent(diaItem.id, { abierto: false });
         }
-    };
-
-    const handleSaveSilent = async (diaId: number, partial: Partial<HorarioConfig>) => {
-        const token = getToken();
-        if (!token) return;
-        const cfg = getConfigForDia(diaId);
-        const updated = { ...cfg, ...partial };
-        const newConfigs = configs.some(c => c.diaSemana === diaId)
-            ? configs.map(c => c.diaSemana === diaId ? updated : c)
-            : [...configs, updated];
-        try {
-            await actualizarConfig(token, newConfigs);
-        } catch { /* silent */ }
     };
 
     const handleSaveDay = async (diaId: number, data: Partial<HorarioConfig>) => {
         const token = getToken();
-        if (!token) return;
+        if (!token) throw Object.assign(new Error("Sin token"), { status: 401 });
+
         const cfg = getConfigForDia(diaId);
-        const updated = { ...cfg, ...data, abierto: true };
+        const updated = { ...cfg, ...data, abierto: true, activo: true };
+
+        // Actualizar estado local optimistamente
         const newConfigs = configs.some(c => c.diaSemana === diaId)
             ? configs.map(c => c.diaSemana === diaId ? updated : c)
             : [...configs, updated];
         setConfigs(newConfigs);
-        await actualizarConfig(token, newConfigs);
+
+        // Llamar al endpoint correcto: PUT /api/horarios/:dia
+        await actualizarHorario(token, diaId, updated);
+
         showToast("Horario guardado");
         setSavedDays(prev => [...prev, diaId]);
         setTimeout(() => setSavedDays(prev => prev.filter(d => d !== diaId)), 2000);
@@ -298,7 +316,7 @@ export default function HorariosPage() {
                                                 {diaItem.abrev}
                                             </span>
                                             <div onClick={(e) => { e.stopPropagation(); handleToggle(diaItem); }}>
-                                                <Toggle active={isOpen} onChange={() => {}} />
+                                                <Toggle active={isOpen} onChange={() => { }} />
                                             </div>
                                         </div>
 
@@ -327,7 +345,7 @@ export default function HorariosPage() {
                     </div>
                 )}
 
-                {/* Info note - Rule 9 */}
+                {/* Info note */}
                 <div style={{
                     background: "#1a1000", border: "1px solid #f59e0b30", borderRadius: 12,
                     padding: 16, display: "flex", gap: 12, alignItems: "flex-start"

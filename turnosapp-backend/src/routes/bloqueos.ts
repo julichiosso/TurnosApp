@@ -19,19 +19,24 @@ router.get('/', async (req: Request, res: Response) => {
     }
 });
 
-// POST /api/bloqueos - bloquear fecha { fecha, motivo? }
+// POST /api/bloqueos - bloquear fecha o rango { fecha, fechaFin?, motivo? }
 router.post('/', async (req: Request, res: Response) => {
     try {
-        const { fecha, motivo } = req.body;
+        const { fecha, fechaFin, motivo } = req.body;
 
         if (!fecha) {
             return res.status(400).json({ error: 'La fecha es requerida (YYYY-MM-DD)' });
         }
 
+        if (fechaFin && fechaFin < fecha) {
+            return res.status(400).json({ error: 'La fecha de fin no puede ser anterior a la fecha de inicio' });
+        }
+
         const nuevoBloqueo = await prisma.bloqueoFecha.create({
             data: {
                 fecha,
-                motivo,
+                fechaFin: fechaFin || null,
+                motivo: motivo || null,
             },
         });
 

@@ -1,11 +1,13 @@
 import { useMemo } from "react";
+import { toISOLocal } from "@/lib/dateUtils";
 
 interface Props {
     fechaSeleccionada: string;
     onSelect: (fecha: string) => void;
+    diasActivos?: number[]; // 0=domingo...6=sábado; undefined = todos habilitados
 }
 
-export default function CalendarioFecha({ fechaSeleccionada, onSelect }: Props) {
+export default function CalendarioFecha({ fechaSeleccionada, onSelect, diasActivos }: Props) {
     const dias = useMemo(() => {
         const arr = [];
         const hoy = new Date();
@@ -13,16 +15,19 @@ export default function CalendarioFecha({ fechaSeleccionada, onSelect }: Props) 
         for (let i = 0; i < 21; i++) {
             const d = new Date();
             d.setDate(hoy.getDate() + i);
-            if (d.getDay() !== 0) {
-                const iso = d.toISOString().split("T")[0];
+            const diaSemana = d.getDay();
+            if (diaSemana !== 0) { // siempre excluir domingo base
+                // Usar toISOLocal para evitar conversión UTC (bug de desfasaje)
+                const iso = toISOLocal(d);
                 const nombreDia = d.toLocaleDateString("es-AR", { weekday: "short" }).replace(".", "");
                 const nroDia = d.getDate();
-                arr.push({ iso, nombreDia, nroDia });
+                const activo = !diasActivos || diasActivos.includes(diaSemana);
+                arr.push({ iso, nombreDia, nroDia, activo, diaSemana });
                 if (arr.length === 14) break;
             }
         }
         return arr;
-    }, []);
+    }, [diasActivos]);
 
     return (
         <div className="relative">
@@ -33,12 +38,15 @@ export default function CalendarioFecha({ fechaSeleccionada, onSelect }: Props) 
                 {dias.map((d) => (
                     <button
                         key={d.iso}
-                        onClick={() => onSelect(d.iso)}
+                        onClick={() => d.activo && onSelect(d.iso)}
+                        disabled={!d.activo}
                         className={`
                             flex-shrink-0 rounded-2xl flex flex-col items-center justify-center transition-all border
-                            ${fechaSeleccionada === d.iso
-                                ? "bg-[#CC0000] border-[#CC0000] text-white shadow-lg shadow-red-900/30 scale-105"
-                                : "bg-[#111] border-[#1e1e1e] text-gray-500 hover:border-[#333]"}
+                            ${!d.activo
+                                ? "bg-[#0d0d0d] border-[#1a1a1a] text-gray-700 cursor-not-allowed opacity-40"
+                                : fechaSeleccionada === d.iso
+                                    ? "bg-[#CC0000] border-[#CC0000] text-white shadow-lg shadow-red-900/30 scale-105"
+                                    : "bg-[#111] border-[#1e1e1e] text-gray-500 hover:border-[#333]"}
                         `}
                         style={{ width: "56px", height: "72px" }}
                     >

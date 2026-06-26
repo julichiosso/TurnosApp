@@ -7,7 +7,7 @@ import CalendarioFecha from "@/components/publico/CalendarioFecha";
 import SlotsHorarios from "@/components/publico/SlotsHorarios";
 import FormularioCliente from "@/components/publico/FormularioCliente";
 import ConfirmacionTurno from "@/components/publico/ConfirmacionTurno";
-import { getServicios, getDisponibilidad, crearTurnoPublico } from "@/lib/api";
+import { getServicios, getDisponibilidad, crearTurnoPublico, getHorariosPublicos } from "@/lib/api";
 import { Servicio, SlotHorario, Turno } from "@/types";
 import {
   IconChevronRight,
@@ -31,18 +31,23 @@ export default function Home() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [slots, setSlots] = useState<SlotHorario[]>([]);
   const [turnoCreado, setTurnoCreado] = useState<Turno | null>(null);
+  const [diasActivos, setDiasActivos] = useState<number[]>([]);
 
   // Selección
   const [servicioId, setServicioId] = useState<number | null>(null);
   const [fecha, setFecha] = useState<string>("");
   const [hora, setHora] = useState<string>("");
 
-  // Cargar servicios al inicio
+  // Cargar servicios y horarios activos al inicio
   useEffect(() => {
     async function load() {
       try {
-        const data = await getServicios();
+        const [data, horarios] = await Promise.all([
+          getServicios(),
+          getHorariosPublicos(),
+        ]);
         setServicios(data.filter(s => s.activo));
+        setDiasActivos(horarios.map((h: any) => h.diaSemana));
       } catch (error) {
         setError("No se pudieron cargar los servicios. Reintentá reconectar base de datos.");
       } finally {
@@ -141,13 +146,12 @@ export default function Home() {
               ].map(({ step, label }) => (
                 <div key={step} className="relative flex flex-col items-center gap-1.5 z-10">
                   <div
-                    className={`w-[10px] h-[10px] rounded-full transition-all duration-300 flex items-center justify-center ${
-                      paso > step
+                    className={`w-[10px] h-[10px] rounded-full transition-all duration-300 flex items-center justify-center ${paso > step
                         ? "bg-[#CC0000]"
                         : paso === step
-                        ? "bg-[#CC0000]"
-                        : "bg-[#2a2a2a]"
-                    }`}
+                          ? "bg-[#CC0000]"
+                          : "bg-[#2a2a2a]"
+                      }`}
                   >
                     {paso > step && (
                       <svg width="7" height="5" viewBox="0 0 7 5" fill="none">
@@ -238,6 +242,7 @@ export default function Home() {
                 <CalendarioFecha
                   fechaSeleccionada={fecha}
                   onSelect={(f) => { setFecha(f); setHora(""); }}
+                  diasActivos={diasActivos.length > 0 ? diasActivos : undefined}
                 />
 
                 <div className="flex gap-4">

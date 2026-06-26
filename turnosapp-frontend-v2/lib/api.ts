@@ -1,5 +1,6 @@
 import { Servicio, SlotHorario, Turno, DashboardStats, HorarioConfig, Bloqueo } from '../types';
 
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3002';
 
 
@@ -108,31 +109,88 @@ export const eliminarServicio = async (token: string, id: number) => {
     return res.json();
 };
 
-// Horarios Config
-export const getConfig = async (): Promise<HorarioConfig[]> => {
+// Horarios Laborales — endpoints correctos (/api/horarios)
+export const getHorarios = async (token: string): Promise<HorarioConfig[]> => {
     try {
-        const res = await fetch(`${API_URL}/api/config`);
+        const res = await fetch(`${API_URL}/api/horarios`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (!res.ok) return [];
-        return res.json();
+        const data = await res.json();
+        // El backend devuelve { activo } pero el componente usa { abierto }
+        return data.map((h: any) => ({ ...h, abierto: h.activo }));
     } catch {
         return [];
     }
 };
 
-export const actualizarConfig = async (token: string, configs: HorarioConfig[]) => {
+export const actualizarHorario = async (
+    token: string,
+    dia: number,
+    data: Partial<HorarioConfig>
+) => {
+    const payload = {
+        horaInicio: data.horaInicio,
+        horaFin: data.horaFin,
+        intervalo: data.intervalo,
+        activo: data.abierto ?? data.activo,
+    };
+    const res = await fetch(`${API_URL}/api/horarios/${dia}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw Object.assign(new Error(body.error || 'Error al actualizar horario'), { status: res.status });
+    }
+    return res.json();
+};
+
+// GET público de horarios activos (para filtrar el calendario de booking)
+export const getHorariosPublicos = async (): Promise<HorarioConfig[]> => {
+    try {
+        const res = await fetch(`${API_URL}/api/publico/horarios`);
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.map((h: any) => ({ ...h, abierto: h.activo }));
+    } catch {
+        return [];
+    }
+};
+
+// Config del Negocio (nombre, teléfono, etc.) — endpoint correcto
+export const getConfigNegocio = async (token: string) => {
+    try {
+        const res = await fetch(`${API_URL}/api/config`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return null;
+        return res.json();
+    } catch {
+        return null;
+    }
+};
+
+export const actualizarConfigNegocio = async (token: string, data: any) => {
     const res = await fetch(`${API_URL}/api/config`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ configs }),
+        body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('Error al actualizar config');
     return res.json();
 };
 
-// Bloqueos
-export const getBloqueos = async (): Promise<Bloqueo[]> => {
+// Bloqueos (requiere auth)
+export const getBloqueos = async (token?: string): Promise<Bloqueo[]> => {
     try {
-        const res = await fetch(`${API_URL}/api/bloqueos`);
+        const headers: Record<string, string> = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const res = await fetch(`${API_URL}/api/bloqueos`, { headers });
         if (!res.ok) return [];
         return res.json();
     } catch {

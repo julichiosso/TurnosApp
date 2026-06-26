@@ -1,6 +1,7 @@
 interface IconProps {
   size?: number;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const defaults = {
@@ -11,17 +12,17 @@ const defaults = {
   strokeLinejoin: "round" as const,
 };
 
-export function IconHome({ size = 20, className }: IconProps) {
+export function IconHome({ size = 20, className, style }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...defaults}>
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} style={style} {...defaults}>
       <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
     </svg>
   );
 }
 
-export function IconCalendar({ size = 20, className }: IconProps) {
+export function IconCalendar({ size = 20, className, style }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...defaults}>
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} style={style} {...defaults}>
       <path d="M8 2v3M16 2v3M3 8h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
     </svg>
   );

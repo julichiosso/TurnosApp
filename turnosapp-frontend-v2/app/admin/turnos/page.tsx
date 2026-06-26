@@ -78,7 +78,7 @@ export default function TurnosPage() {
                         <IconChevronLeft size={20} />
                     </button>
                     <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center" }}>
-                        <IconCalendar size={16} className="text-[#e63946]" style={{ position: "absolute", left: 12 }} />
+                        <IconCalendar size={16} className="text-[#e63946]" style={{ position: "absolute", left: 12 } as any} />
                         <input
                             type="date"
                             value={fecha}
@@ -105,7 +105,7 @@ export default function TurnosPage() {
 
             {/* List */}
             {loading ? (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 40 }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 0" }}>
                     <IconLoader size={28} className="text-[#e63946]" />
                     <p style={{ color: "#888", fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", marginTop: 12 }}>Cargando...</p>
                 </div>

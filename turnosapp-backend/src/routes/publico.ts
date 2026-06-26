@@ -25,6 +25,21 @@ router.get('/servicios', async (req: Request, res: Response) => {
     }
 });
 
+// GET /api/publico/horarios — días laborales activos (sin auth, necesario para el booking)
+router.get('/horarios', async (req: Request, res: Response) => {
+    try {
+        const horarios = await prisma.horarioLaboral.findMany({
+            where: { activo: true },
+            orderBy: { diaSemana: 'asc' },
+        });
+        return res.json(horarios);
+    } catch (error) {
+        console.error('[PUBLICO] Fetch horarios error:', error);
+        return res.status(500).json({ error: 'Error al obtener horarios' });
+    }
+});
+
+
 // GET /api/publico/disponibilidad?servicioId=1&fecha=2024-06-15
 router.get('/disponibilidad', async (req: Request, res: Response) => {
     try {

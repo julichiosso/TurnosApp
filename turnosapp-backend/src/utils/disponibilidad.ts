@@ -27,9 +27,17 @@ export async function getSlotsDisponibles(servicioId: number, fecha: string): Pr
         return [];
     }
 
-    // 4. Verificar que la fecha no esté bloqueada
+    // 4. Verificar que la fecha no esté bloqueada (soporta día único y rangos)
     const bloqueada = await prisma.bloqueoFecha.findFirst({
-        where: { fecha },
+        where: {
+            fecha: { lte: fecha },   // el bloqueo empieza en o antes de la fecha consultada
+            OR: [
+                // día único: no hay fechaFin y la fecha exacta coincide
+                { fechaFin: null, fecha: fecha },
+                // rango: fechaFin existe y la fecha consultada cae dentro del rango
+                { fechaFin: { gte: fecha } },
+            ],
+        },
     });
 
     if (bloqueada) {

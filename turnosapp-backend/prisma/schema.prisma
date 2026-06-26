@@ -37,9 +37,10 @@ model HorarioLaboral {
 }
 
 model BloqueoFecha {
-  id     Int     @id @default(autoincrement())
-  fecha  String  // "2024-06-15" — día completo bloqueado
-  motivo String?
+  id       Int     @id @default(autoincrement())
+  fecha    String  // "2024-06-15" — inicio del bloqueo (o día único)
+  fechaFin String? // "2024-06-19" — fin del rango (null = día único)
+  motivo   String?
 }
 
 model Turno {

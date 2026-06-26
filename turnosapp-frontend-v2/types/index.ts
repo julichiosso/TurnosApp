@@ -25,11 +25,12 @@ export interface SlotHorario {
     disponible: boolean;
 }
 
-// Matches backend /api/config response
+// Matches backend /api/horarios response
 export interface HorarioConfig {
     id?: number;
     diaSemana: number;
-    abierto: boolean;
+    abierto: boolean;   // frontend alias
+    activo?: boolean;   // backend field name
     horaInicio: string;
     horaFin: string;
     intervalo?: number;
@@ -39,6 +40,7 @@ export interface HorarioConfig {
 export interface Bloqueo {
     id: number;
     fecha: string;
+    fechaFin?: string;  // para bloqueos de rango
     motivo?: string;
 }
 
