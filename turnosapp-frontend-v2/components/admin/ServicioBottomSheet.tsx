@@ -72,11 +72,10 @@ export default function ServicioBottomSheet({ open, servicio, onClose, onSave }:
                         onChange={e => setForm({ ...form, nombre: e.target.value })}
                         placeholder="Ej: Reparación de chapa"
                         style={{
-                            background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 10,
-                            padding: "13px 14px", color: "#f5f5f5", fontSize: 15, width: "100%",
-                            outline: "none", boxSizing: "border-box"
+                            background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: 14,
+                            padding: "14px 16px", color: "#f5f5f5", fontSize: 16, width: "100%",
+                            outline: "none", fontWeight: "800", boxSizing: "border-box"
                         }}
-                        className="focus:border-[#e63946]"
                     />
                 </div>
 
@@ -93,11 +92,10 @@ export default function ServicioBottomSheet({ open, servicio, onClose, onSave }:
                             value={form.duracion}
                             onChange={e => setForm({ ...form, duracion: parseInt(e.target.value) })}
                             style={{
-                                background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 10,
-                                padding: "13px 14px", color: "#f5f5f5", fontSize: 15, width: "100%",
-                                outline: "none", boxSizing: "border-box"
+                                background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: 14,
+                                padding: "14px 16px", color: "#f5f5f5", fontSize: 16, width: "100%",
+                                outline: "none", fontWeight: "800", boxSizing: "border-box", textAlign: "center"
                             }}
-                            className="focus:border-[#e63946]"
                         />
                     </div>
                     <div>
@@ -112,11 +110,10 @@ export default function ServicioBottomSheet({ open, servicio, onClose, onSave }:
                                 value={form.precio}
                                 onChange={e => setForm({ ...form, precio: parseInt(e.target.value) || 0 })}
                                 style={{
-                                    background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 10,
-                                    padding: "13px 14px 13px 28px", color: "#f5f5f5", fontSize: 15, width: "100%",
-                                    outline: "none", boxSizing: "border-box"
+                                    background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: 14,
+                                    padding: "14px 16px 14px 28px", color: "#f5f5f5", fontSize: 16, width: "100%",
+                                    outline: "none", fontWeight: "800", boxSizing: "border-box"
                                 }}
-                                className="focus:border-[#e63946]"
                             />
                         </div>
                     </div>
@@ -132,11 +129,10 @@ export default function ServicioBottomSheet({ open, servicio, onClose, onSave }:
                         rows={2}
                         placeholder="Breve descripción del servicio..."
                         style={{
-                            background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 10,
-                            padding: "13px 14px", color: "#f5f5f5", fontSize: 15, width: "100%",
-                            outline: "none", resize: "none", boxSizing: "border-box"
+                            background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: 14,
+                            padding: "14px 16px", color: "#f5f5f5", fontSize: 16, width: "100%",
+                            outline: "none", resize: "none", fontWeight: "800", boxSizing: "border-box"
                         }}
-                        className="focus:border-[#e63946]"
                     />
                 </div>
 

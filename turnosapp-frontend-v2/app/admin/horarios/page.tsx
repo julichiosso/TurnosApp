@@ -99,8 +99,9 @@ function DayBottomSheet({ dia, config, onClose, onSave }: DayBottomSheetProps) {
                             Hora inicio
                         </label>
                         <div style={{
-                            display: "flex", alignItems: "center", gap: 8, background: "#1a1a1a",
-                            border: "1px solid #2a2a2a", borderRadius: 10, padding: "8px 12px"
+                            display: "flex", alignItems: "center", gap: 8, background: "#0d0d0d",
+                            border: error && error.includes("fin") ? "1px solid #e63946" : "1px solid #2a2a2a",
+                            borderRadius: 14, padding: "12px 16px"
                         }}>
                             <IconClock size={16} className="text-[#e63946]" />
                             <input
@@ -109,7 +110,8 @@ function DayBottomSheet({ dia, config, onClose, onSave }: DayBottomSheetProps) {
                                 onChange={e => { setHoraInicio(e.target.value); setError(null); }}
                                 style={{
                                     background: "transparent", border: "none", color: "#fff",
-                                    fontWeight: "bold", fontSize: 15, outline: "none", width: "100%"
+                                    fontWeight: "800", fontSize: 16, outline: "none", width: "100%",
+                                    appearance: "none", WebkitAppearance: "none"
                                 }}
                             />
                         </div>
@@ -119,9 +121,9 @@ function DayBottomSheet({ dia, config, onClose, onSave }: DayBottomSheetProps) {
                             Hora fin
                         </label>
                         <div style={{
-                            display: "flex", alignItems: "center", gap: 8, background: "#1a1a1a",
+                            display: "flex", alignItems: "center", gap: 8, background: "#0d0d0d",
                             border: error && error.includes("fin") ? "1px solid #e63946" : "1px solid #2a2a2a",
-                            borderRadius: 10, padding: "8px 12px"
+                            borderRadius: 14, padding: "12px 16px"
                         }}>
                             <IconClock size={16} className="text-[#e63946]" />
                             <input
@@ -130,7 +132,8 @@ function DayBottomSheet({ dia, config, onClose, onSave }: DayBottomSheetProps) {
                                 onChange={e => { setHoraFin(e.target.value); setError(null); }}
                                 style={{
                                     background: "transparent", border: "none", color: "#fff",
-                                    fontWeight: "bold", fontSize: 15, outline: "none", width: "100%"
+                                    fontWeight: "800", fontSize: 16, outline: "none", width: "100%",
+                                    appearance: "none", WebkitAppearance: "none"
                                 }}
                             />
                         </div>
@@ -271,10 +274,10 @@ export default function HorariosPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 {/* Header */}
                 <div>
-                    <h1 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.05em", fontStyle: "italic" }}>
+                    <h1 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.05em", fontStyle: "italic", lineHeight: 1.1 }}>
                         Horarios <span style={{ color: "#e63946" }}>Laborales</span>
                     </h1>
-                    <p style={{ color: "#888", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>
+                    <p style={{ color: "#888", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, marginTop: 6 }}>
                         Tocá un día activo para editar sus horarios.
                     </p>
                 </div>

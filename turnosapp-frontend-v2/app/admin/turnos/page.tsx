@@ -59,34 +59,34 @@ export default function TurnosPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {/* Header + Date Nav */}
             <div>
-                <h1 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.05em", fontStyle: "italic" }}>
+                <h1 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.05em", fontStyle: "italic", lineHeight: 1.1 }}>
                     Agenda <span style={{ color: "#e63946" }}>del Día</span>
                 </h1>
-                {/* Date picker row */}
+
                 <div style={{
-                    display: "flex", alignItems: "center", gap: 8, marginTop: 12,
-                    background: "#141414", border: "1px solid #2a2a2a", padding: 6, borderRadius: 18
+                    display: "flex", alignItems: "center", gap: 8, marginTop: 14,
+                    background: "#0d0d0d", border: "1px solid #2a2a2a", padding: "6px 8px", borderRadius: 20
                 }}>
                     <button
                         onClick={() => cambiarDia(-1)}
                         style={{
                             border: "none", background: "transparent", color: "#888",
-                            width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center",
-                            cursor: "pointer", borderRadius: 12
+                            width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
+                            cursor: "pointer", borderRadius: 14
                         }}
                     >
-                        <IconChevronLeft size={20} />
+                        <IconChevronLeft size={22} />
                     </button>
                     <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center" }}>
-                        <IconCalendar size={16} className="text-[#e63946]" style={{ position: "absolute", left: 12 } as any} />
+                        <IconCalendar size={16} className="text-[#e63946]" style={{ position: "absolute", left: 14 } as any} />
                         <input
                             type="date"
                             value={fecha}
                             onChange={e => setFecha(e.target.value)}
                             style={{
-                                width: "100%", height: 40, background: "transparent", border: "none",
-                                color: "#fff", fontWeight: "bold", fontSize: 16, outline: "none",
-                                paddingLeft: 38, cursor: "pointer"
+                                width: "100%", height: 44, background: "transparent", border: "none",
+                                color: "#fff", fontWeight: "800", fontSize: 16, outline: "none",
+                                paddingLeft: 42, cursor: "pointer", appearance: "none", WebkitAppearance: "none"
                             }}
                         />
                     </div>
@@ -94,11 +94,11 @@ export default function TurnosPage() {
                         onClick={() => cambiarDia(1)}
                         style={{
                             border: "none", background: "transparent", color: "#888",
-                            width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center",
-                            cursor: "pointer", borderRadius: 12
+                            width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
+                            cursor: "pointer", borderRadius: 14
                         }}
                     >
-                        <IconChevronRight size={20} />
+                        <IconChevronRight size={22} />
                     </button>
                 </div>
             </div>
@@ -123,7 +123,7 @@ export default function TurnosPage() {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "between", gap: 12, paddingTop: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, paddingTop: 8 }}>
                             <button
                                 onClick={() => setPage(p => Math.max(0, p - 1))}
                                 disabled={page === 0}

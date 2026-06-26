@@ -99,9 +99,10 @@ export default function BloqueosPage() {
     };
 
     const inputStyle: React.CSSProperties = {
-        background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 10,
-        padding: "13px 14px", color: "#f5f5f5", fontSize: 15, width: "100%",
-        outline: "none", fontWeight: "bold", boxSizing: "border-box"
+        background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: 14,
+        padding: "16px 20px", color: "#f5f5f5", fontSize: 16, width: "100%",
+        outline: "none", fontWeight: "800", boxSizing: "border-box", textAlign: "center",
+        appearance: "none", WebkitAppearance: "none"
     };
 
     const labelStyle: React.CSSProperties = {
@@ -114,25 +115,25 @@ export default function BloqueosPage() {
             <Toast message={toast} />
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 {/* Header */}
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                    <div>
-                        <h1 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.05em", fontStyle: "italic" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                    <div style={{ flex: 1 }}>
+                        <h1 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.05em", fontStyle: "italic", lineHeight: 1.1 }}>
                             Fechas <span style={{ color: "#e63946" }}>Bloqueadas</span>
                         </h1>
-                        <p style={{ color: "#888", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>
+                        <p style={{ color: "#888", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, marginTop: 6 }}>
                             Feriados, vacaciones, mantenimiento.
                         </p>
                     </div>
                     <button
                         onClick={() => { setSheetOpen(true); setModo("dia"); setFormError(null); }}
                         style={{
-                            height: 44, padding: "0 16px", background: "#e63946", color: "#fff",
-                            border: "none", borderRadius: 14, fontWeight: "bold", fontSize: 14,
-                            display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
-                            boxShadow: "0 10px 15px -3px rgba(230, 57, 70, 0.25)"
+                            height: 42, padding: "0 14px", background: "#e63946", color: "#fff",
+                            border: "none", borderRadius: 12, fontWeight: "900", fontSize: 13,
+                            textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
+                            boxShadow: "0 8px 15px -4px rgba(230, 57, 70, 0.4)", flexShrink: 0
                         }}
                     >
-                        <IconPlusCircle size={18} /> Bloquear
+                        <IconPlusCircle size={16} /> Bloquear
                     </button>
                 </div>
 

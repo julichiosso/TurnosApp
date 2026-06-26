@@ -88,25 +88,25 @@ export default function ServiciosPage() {
             <Toast message={toast} />
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 {/* Header */}
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                    <div>
-                        <h1 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.05em", fontStyle: "italic" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                    <div style={{ flex: 1 }}>
+                        <h1 style={{ fontSize: 24, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.05em", fontStyle: "italic", lineHeight: 1.1 }}>
                             Nuestros <span style={{ color: "#e63946" }}>Servicios</span>
                         </h1>
-                        <p style={{ color: "#888", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>
+                        <p style={{ color: "#888", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, marginTop: 6 }}>
                             {servicios.length} servicios configurados
                         </p>
                     </div>
                     <button
                         onClick={openNew}
                         style={{
-                            height: 44, padding: "0 16px", background: "#e63946", color: "#fff",
-                            border: "none", borderRadius: 14, fontWeight: "bold", fontSize: 14,
-                            display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
-                            boxShadow: "0 10px 15px -3px rgba(230, 57, 70, 0.25)"
+                            height: 42, padding: "0 14px", background: "#e63946", color: "#fff",
+                            border: "none", borderRadius: 12, fontWeight: "900", fontSize: 13,
+                            textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
+                            boxShadow: "0 8px 15px -4px rgba(230, 57, 70, 0.4)", flexShrink: 0
                         }}
                     >
-                        <IconPlusCircle size={18} /> Nuevo
+                        <IconPlusCircle size={16} /> Nuevo
                     </button>
                 </div>
 
