@@ -41,7 +41,7 @@ export default function LoginPage() {
                     <h1 className="text-white text-2xl font-black uppercase tracking-tight">
                         Panel de <span className="text-[#e63946]">Control</span>
                     </h1>
-                    <p className="text-[#888888] text-xs mt-1 font-medium">Taller Manias SRL</p>
+                    <p className="text-[#888888 ] text-xs mt-1 font-medium">Taller Manias SRL</p>
                 </div>
 
                 <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-6 shadow-2xl">
