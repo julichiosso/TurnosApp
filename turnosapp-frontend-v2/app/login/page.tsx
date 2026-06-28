@@ -35,7 +35,7 @@ export default function LoginPage() {
         <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center px-4">
             <div className="w-full max-w-sm">
                 <div className="flex flex-col items-center mb-8">
-                    <div className="w-10 h-20 bg-[#e63946] rounded-full flex items-center justify-center mb-4 shadow-xl shadow-[#e63946]/20">
+                    <div className="w-10 h-10 bg-[#e63946] rounded-full flex items-center justify-center mb-4 shadow-xl shadow-[#e63946]/20">
                         <span className="text-white font-black text-2xl italic uppercase">TM</span>
                     </div>
                     <h1 className="text-white text-2xl font-black italic uppercase tracking-tight">
