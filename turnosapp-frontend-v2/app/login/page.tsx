@@ -35,10 +35,10 @@ export default function LoginPage() {
         <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center px-4">
             <div className="w-full max-w-sm">
                 <div className="flex flex-col items-center mb-8">
-                    <div className="w-10 h-10 bg-[#e63946] rounded-full flex items-center justify-center mb-4 shadow-xl shadow-[#e63946]/20">
-                        <span className="text-white font-black text-2xl italic uppercase">TM</span>
+                    <div className="w-8 h-8 bg-[#e63946] rounded-full flex items-center justify-center mb-4 shadow-xl shadow-[#e63946]/20">
+                        <span className="text-white font-black text-0x0 uppercase">TM</span>
                     </div>
-                    <h1 className="text-white text-2xl font-black italic uppercase tracking-tight">
+                    <h1 className="text-white text-2xl font-black uppercase tracking-tight">
                         Panel de <span className="text-[#e63946]">Control</span>
                     </h1>
                     <p className="text-[#888888] text-xs mt-1 font-medium">Taller Manias SRL</p>
